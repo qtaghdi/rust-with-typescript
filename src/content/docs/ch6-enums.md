@@ -204,6 +204,28 @@ const w: Message = { kind: "write", text: "hello", urgent: false };
 
 Rust 쪽이 더 간결하고, `kind` 같은 discriminant 필드를 별도로 쓸 필요가 없습니다.
 
+### 실행해보기
+
+```rust runnable
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn main() {
+    let dir = Direction::West;
+    let label = match dir {
+        Direction::North => "N",
+        Direction::South => "S",
+        Direction::East => "E",
+        Direction::West => "W",
+    };
+    println!("dir = {}", label);
+}
+```
+
 ---
 
 ## 6-3. match 표현식 — TypeScript switch vs Rust match

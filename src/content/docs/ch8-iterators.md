@@ -48,6 +48,16 @@ let doubled: Vec<i32> = numbers.iter().map(|x| x * 2).collect();
 // |x: &i32| (*x) * 2 라고 쓰지 않아도 컴파일러가 알아서 추론합니다
 ```
 
+### 실행해보기
+
+```rust runnable
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    let sum: i32 = numbers.iter().map(|x| x * 2).sum();
+    println!("sum = {}", sum);
+}
+```
+
 ---
 
 ### 환경 캡처: move vs borrow
