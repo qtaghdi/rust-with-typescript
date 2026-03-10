@@ -33,8 +33,21 @@ export function UserList() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addUser = (e: React.FormEvent) => {
+  const fakeSave = (user: NewUser) =>
+    new Promise<NewUser>((resolve, reject) => {
+      setTimeout(() => {
+        if (!user.email.includes("@")) {
+          reject(new Error("Invalid email"));
+          return;
+        }
+        resolve(user);
+      }, 400);
+    });
+
+  const addUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
 
@@ -44,9 +57,19 @@ export function UserList() {
       email: email.trim(),
     };
 
-    setUsers([...users, newUser]);
-    setName("");
-    setEmail("");
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      await fakeSave(newUser);
+      setUsers([...users, newUser]);
+      setName("");
+      setEmail("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -71,7 +94,10 @@ export function UserList() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
         />
-        <button type="submit">Add</button>
+        <button type="submit" disabled={isSaving}>
+          {isSaving ? "Saving..." : "Add"}
+        </button>
+        {error && <p role="alert">{error}</p>}
       </form>
     </section>
   );
