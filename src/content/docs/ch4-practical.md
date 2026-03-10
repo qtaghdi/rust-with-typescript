@@ -1,213 +1,165 @@
 ---
 title: "Ch.9 — 실전 예제"
-description: "Express vs Axum, Zod vs Serde, 에러 핸들링 패턴"
+description: "React vs Leptos, Zod vs Serde, 에러 핸들링 패턴"
 ---
 
 이론은 충분히 봤으니 이제 실제로 코드를 짜봅시다. TypeScript로 만든 것들을 Rust로 구현하면서 차이를 체감해보겠습니다.
 
 ---
 
-## 4-1. HTTP API 서버: Express.js vs Axum
+## 4-1. UI 컴포넌트: React vs Leptos
 
-간단한 사용자 관리 REST API를 두 언어로 구현합니다.
+간단한 사용자 목록/추가 UI를 두 언어로 구현합니다.
 
-### TypeScript — Express.js
+### TypeScript — React
 
 ```typescript
-// package.json 의존성:
-// "express": "^4.18.0"
-// "@types/express": "^4.17.0"
-// "zod": "^3.22.0"
+import React, { useState } from "react";
 
-import express, { Request, Response } from "express";
-import { z } from "zod";
-
-const app = express();
-app.use(express.json());
-
-// 타입 정의
 interface User {
   id: number;
   name: string;
   email: string;
 }
 
-// 인메모리 DB (예제용)
-const users: User[] = [
+type NewUser = Omit<User, "id">;
+
+const initialUsers: User[] = [
   { id: 1, name: "Alice", email: "alice@example.com" },
   { id: 2, name: "Bob", email: "bob@example.com" },
 ];
-let nextId = 3;
 
-// 입력 검증 스키마 (Zod)
-const CreateUserSchema = z.object({
-  name: z.string().min(1, "Name required"),
-  email: z.string().email("Invalid email"),
-});
+export function UserList() {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
-// GET /users — 전체 목록
-app.get("/users", (req: Request, res: Response) => {
-  res.json(users);
-});
+  const addUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
 
-// GET /users/:id — 단건 조회
-app.get("/users/:id", (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-  const user = users.find((u) => u.id === id);
+    const newUser: User = {
+      id: users.length + 1,
+      name: name.trim(),
+      email: email.trim(),
+    };
 
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
-  }
-
-  res.json(user);
-});
-
-// POST /users — 생성
-app.post("/users", (req: Request, res: Response) => {
-  const result = CreateUserSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return res.status(400).json({ error: result.error.flatten() });
-  }
-
-  const newUser: User = {
-    id: nextId++,
-    ...result.data,
+    setUsers([...users, newUser]);
+    setName("");
+    setEmail("");
   };
 
-  users.push(newUser);
-  res.status(201).json(newUser);
-});
+  return (
+    <section>
+      <h2>Users</h2>
+      <ul>
+        {users.map((u) => (
+          <li key={u.id}>
+            {u.name} — {u.email}
+          </li>
+        ))}
+      </ul>
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
+      <form onSubmit={addUser}>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+        />
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+        />
+        <button type="submit">Add</button>
+      </form>
+    </section>
+  );
+}
 ```
 
-### Rust — Axum
+### Rust — Leptos
 
 ```toml
 # Cargo.toml
 [dependencies]
-axum = "0.7"
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+leptos = { version = "0.6", features = ["csr"] }
 ```
 
 ```rust
-// src/main.rs
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::Json,
-    routing::{get, post},
-    Router,
-};
-use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use leptos::*;
 
-// 타입 정의 — derive로 직렬화/역직렬화 자동 구현
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 struct User {
-    id: u32,
+    id: usize,
     name: String,
     email: String,
 }
 
-// POST /users 요청 바디 타입
-#[derive(Debug, Deserialize)]
-struct CreateUser {
-    name: String,
-    email: String,
-}
+#[component]
+fn UserList() -> impl IntoView {
+    let (users, set_users) = create_signal(vec![
+        User { id: 1, name: "Alice".into(), email: "alice@example.com".into() },
+        User { id: 2, name: "Bob".into(), email: "bob@example.com".into() },
+    ]);
 
-// 공유 상태 타입
-type SharedState = Arc<Mutex<AppState>>;
+    let (name, set_name) = create_signal(String::new());
+    let (email, set_email) = create_signal(String::new());
 
-struct AppState {
-    users: Vec<User>,
-    next_id: u32,
-}
-
-impl AppState {
-    fn new() -> Self {
-        AppState {
-            users: vec![
-                User { id: 1, name: "Alice".into(), email: "alice@example.com".into() },
-                User { id: 2, name: "Bob".into(), email: "bob@example.com".into() },
-            ],
-            next_id: 3,
+    let add_user = move |_| {
+        let name = name.get().trim().to_string();
+        let email = email.get().trim().to_string();
+        if name.is_empty() || email.is_empty() {
+            return;
         }
-    }
-}
 
-// GET /users — 전체 목록
-async fn list_users(
-    State(state): State<SharedState>,
-) -> Json<Vec<User>> {
-    let state = state.lock().unwrap();
-    Json(state.users.clone())
-}
-
-// GET /users/:id — 단건 조회
-async fn get_user(
-    State(state): State<SharedState>,
-    Path(id): Path<u32>,
-) -> Result<Json<User>, StatusCode> {
-    let state = state.lock().unwrap();
-    let user = state.users.iter().find(|u| u.id == id);
-
-    match user {
-        Some(u) => Ok(Json(u.clone())),
-        None => Err(StatusCode::NOT_FOUND), // 404
-    }
-}
-
-// POST /users — 생성
-async fn create_user(
-    State(state): State<SharedState>,
-    Json(payload): Json<CreateUser>, // 자동 역직렬화 + 유효성 검사
-) -> (StatusCode, Json<User>) {
-    let mut state = state.lock().unwrap();
-
-    // 간단한 유효성 검사 (실제로는 validator 크레이트 사용)
-    let new_user = User {
-        id: state.next_id,
-        name: payload.name,
-        email: payload.email,
+        set_users.update(|list| {
+            let id = list.len() + 1;
+            list.push(User { id, name, email });
+        });
+        set_name.set(String::new());
+        set_email.set(String::new());
     };
-    state.next_id += 1;
-    state.users.push(new_user.clone());
 
-    (StatusCode::CREATED, Json(new_user)) // 201 Created
-}
+    view! {
+        <section>
+            <h2>"Users"</h2>
+            <ul>
+                <For
+                    each=move || users.get()
+                    key=|u| u.id
+                    children=|u| view! { <li>{u.name} " — " {u.email}</li> }
+                />
+            </ul>
 
-#[tokio::main]
-async fn main() {
-    let state = Arc::new(Mutex::new(AppState::new()));
-
-    let app = Router::new()
-        .route("/users", get(list_users).post(create_user))
-        .route("/users/:id", get(get_user))
-        .with_state(state);
-
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("Server running on http://localhost:3000");
-    axum::serve(listener, app).await.unwrap();
+            <div>
+                <input
+                    prop:value=move || name.get()
+                    on:input=move |e| set_name.set(event_target_value(&e))
+                    placeholder="Name"
+                />
+                <input
+                    prop:value=move || email.get()
+                    on:input=move |e| set_email.set(event_target_value(&e))
+                    placeholder="Email"
+                />
+                <button on:click=add_user>"Add"</button>
+            </div>
+        </section>
+    }
 }
 ```
 
 ### 구조 차이 비교
 
-| 관점 | Express.js (TS) | Axum (Rust) |
+| 관점 | React (TS) | Leptos (Rust) |
 |------|----------------|-------------|
-| 타입 안전성 | 런타임 + Zod 검증 | 컴파일 타임 (역직렬화 실패 = 400 자동) |
-| 공유 상태 | 전역 변수 / 클로저 | `Arc<Mutex<T>>` (명시적 동기화) |
-| 에러 처리 | `res.status(404).json(...)` | `Result<T, StatusCode>` 반환 |
-| 미들웨어 | `app.use(...)` | `layer(...)` |
-| 라우터 | 파일 단위 분리 어렵지 않음 | `Router` 합성 |
-| 성능 | Node.js 싱글스레드 이벤트 루프 | Tokio 멀티스레드 async |
+| 타입 안전성 | TS 컴파일 타임 + 런타임(선택) | Rust 컴파일 타임 |
+| 상태 관리 | `useState` 훅 | `Signal` (반응형) |
+| 템플릿 | JSX | `view!` 매크로 |
+| 이벤트 | `onChange`, `onSubmit` | `on:input`, `on:click` |
+| 런타임 | 브라우저 JS | WASM + 브라우저 |
+| 생태계 | 거대 | 성장 중 |
 
 ---
 
