@@ -1,0 +1,172 @@
+/* ===================================================
+   Rust with TypeScript — Custom Theme
+   ─ 라이트/다크 완전 분리
+   ─ 한글 word-break 처리
+   ─ Starlight 기본 스타일 비충돌
+   =================================================== */
+
+/* ── 라이트 모드 accent ── */
+:root,
+[data-theme='light'] {
+  --sl-color-accent-low:  #fde8e3;
+  --sl-color-accent:      #c0392b;
+  --sl-color-accent-high: #922b21;
+}
+
+/* ── 다크 모드 accent + 배경 ── */
+[data-theme='dark'] {
+  --sl-color-accent-low:  #3d1209;
+  --sl-color-accent:      #e05a3a;
+  --sl-color-accent-high: #ff8262;
+
+  --sl-color-bg:               #13100e;
+  --sl-color-bg-nav:           #1b1612;
+  --sl-color-bg-sidebar:       #181310;
+  --sl-color-hairline:         #2c2218;
+  --sl-color-hairline-light:   #231b16;
+}
+
+/* ── 공통 폰트 ── */
+:root {
+  --sl-font-system: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR',
+                    system-ui, -apple-system, sans-serif;
+  --sl-font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ══════════════════════════════
+   타이포그래피 & 한글 줄바꿈
+══════════════════════════════ */
+.sl-markdown-content {
+  line-height: 1.85;
+  word-break: keep-all;       /* 한글 어절 단위 줄바꿈 */
+  overflow-wrap: break-word;  /* 긴 URL/코드 강제 줄바꿈 */
+}
+
+.sl-markdown-content h2 {
+  border-bottom: 2px solid var(--sl-color-accent);
+  padding-bottom: 0.3em;
+  margin-top: 2.5rem;
+}
+
+.sl-markdown-content h3 {
+  color: var(--sl-color-accent);
+  margin-top: 2rem;
+}
+
+[data-theme='dark'] .sl-markdown-content h3 {
+  color: var(--sl-color-accent-high);
+}
+
+/* ══════════════════════════════
+   인라인 코드
+══════════════════════════════ */
+.sl-markdown-content :not(pre) > code {
+  background: color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+  color: var(--sl-color-accent-high);
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.87em;
+  word-break: break-all;
+}
+
+/* ══════════════════════════════
+   테이블
+══════════════════════════════ */
+.sl-markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  margin: 1.5rem 0;
+}
+
+.sl-markdown-content th {
+  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  font-weight: 600;
+  padding: 0.6em 1em;
+  text-align: left;
+  border-bottom: 2px solid var(--sl-color-accent);
+}
+
+.sl-markdown-content td {
+  padding: 0.55em 1em;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  vertical-align: top;
+}
+
+.sl-markdown-content tr:hover td {
+  background: color-mix(in srgb, var(--sl-color-accent) 5%, transparent);
+}
+
+/* ══════════════════════════════
+   Blockquote
+══════════════════════════════ */
+.sl-markdown-content blockquote {
+  border-left: 4px solid var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 7%, transparent);
+  border-radius: 0 8px 8px 0;
+  margin: 1.5rem 0;
+  padding: 0.75em 1.2em;
+}
+
+.sl-markdown-content blockquote p {
+  margin: 0;
+}
+
+/* ══════════════════════════════
+   Callout (:::note 등)
+══════════════════════════════ */
+.starlight-aside {
+  border-radius: 8px;
+  border-left-width: 3px;
+}
+
+/* ══════════════════════════════
+   사이드바 그룹 라벨
+══════════════════════════════ */
+.group-label span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  /* text-transform: uppercase 생략 — 한국어 호환 */
+}
+
+/* ══════════════════════════════
+   링크
+══════════════════════════════ */
+.sl-markdown-content a {
+  color: var(--sl-color-accent);
+  text-decoration-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+}
+
+.sl-markdown-content a:hover {
+  color: var(--sl-color-accent-high);
+  text-decoration-color: var(--sl-color-accent);
+}
+
+[data-theme='dark'] .sl-markdown-content a {
+  color: var(--sl-color-accent-high);
+}
+
+[data-theme='dark'] .sl-markdown-content a:hover {
+  color: #ffaa90;
+}
+
+/* ══════════════════════════════
+   헤딩 앵커 링크 숨김
+══════════════════════════════ */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) > a {
+  display: none;
+}
+
+/* ══════════════════════════════
+   페이지 네비게이션 버튼
+══════════════════════════════ */
+.pagination-links a {
+  border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+}
+
+.pagination-links a:hover {
+  border-color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+}
