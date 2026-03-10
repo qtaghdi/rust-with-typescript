@@ -354,6 +354,24 @@ const description =
   : "odd, greater than 6";
 ```
 
+### 실행해보기
+
+```rust runnable
+fn main() {
+    let num = 7;
+
+    let description = match num {
+        1 => "one",
+        2 | 3 => "two or three",
+        4..=6 => "four to six",
+        n if n % 2 == 0 => "even, greater than 6",
+        _ => "odd, greater than 6",
+    };
+
+    println!("{}", description);
+}
+```
+
 ### 구조 분해 패턴
 
 `match`는 enum variant의 내부 데이터를 꺼내는 것도 한 번에 처리합니다.

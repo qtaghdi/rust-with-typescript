@@ -229,6 +229,16 @@ fn main() {
 }
 ```
 
+### 실행해보기
+
+```rust runnable
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    let doubled: Vec<i32> = numbers.iter().map(|n| n * 2).collect();
+    println!("{:?}", doubled);
+}
+```
+
 | 메서드 | 요소 타입 | 원본 사용 가능? | 용도 |
 |-------|---------|-------------|-----|
 | `iter()` | `&T` | 예 | 읽기 전용 순회 |
