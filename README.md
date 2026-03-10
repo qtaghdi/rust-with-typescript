@@ -1,6 +1,6 @@
 # Rust for TypeScript Developers
 
-TypeScript 개발자를 위한 Rust 가이드 문서 프로젝트입니다. 문서는 Astro + Starlight로 구성되어 있고, 예제는 프론트 개발자 관점을 반영합니다.
+TypeScript(특히 React) 개발자를 위한 Rust 학습 가이드 문서 프로젝트입니다. 문서는 Astro + Starlight로 구성되어 있고, 예제는 프론트 개발자 관점을 반영합니다.
 
 ## Project Structure
 
