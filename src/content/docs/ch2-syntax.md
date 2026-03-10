@@ -694,3 +694,42 @@ cache.set("user:1".to_string(), user);
 ```
 
 > Rust의 `HashMap` 키로 쓰이려면 `Eq + Hash` trait을 구현해야 합니다. TypeScript의 `Map`은 어떤 값이든 키로 쓸 수 있지만, Rust는 컴파일 타임에 이 제약을 강제합니다.
+
+---
+
+## 요약
+
+- Rust의 기본 변수는 불변이며 `mut`로 변경 가능하다.
+- 함수 반환은 마지막 표현식이 기본이다.
+- `struct`와 `trait`로 데이터/동작을 분리한다.
+- `Option`과 `Result`가 null/예외를 대체한다.
+- async/await는 런타임(Tokio 등)이 필요하다.
+
+## 핵심 코드
+
+```rust runnable
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn main() {
+    let sum = add(2, 3);
+    println!("sum = {}", sum);
+}
+```
+
+## 자주 하는 실수
+
+- `let`이 기본 불변이라는 사실을 잊고 재할당한다.
+- 함수 마지막 줄에 세미콜론을 붙여 반환값이 사라진다.
+- `Option`을 바로 꺼내 쓰려다 컴파일 에러를 본다.
+
+## 연습
+
+1. TypeScript의 `try/catch` 코드를 `Result`로 바꿔보자.
+2. 간단한 `struct`와 `impl`을 만들어 메서드를 추가해보자.
+
+## 챕터 연결
+
+이전 챕터에서는 멘탈 모델 차이를 정리했다.
+다음 챕터에서는 Ownership과 Borrowing을 본격적으로 다룬다.
