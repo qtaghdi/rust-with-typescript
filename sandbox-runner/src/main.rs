@@ -1,23 +1,35 @@
 use axum::{
+    extract::State,
     http::StatusCode,
     routing::post,
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    collections::VecDeque,
     env,
     process::Stdio,
+    sync::Arc,
     time::{Duration, Instant},
 };
 use tempfile::tempdir;
 use tokio::{
     process::Command,
+    sync::{Mutex, Semaphore},
     time::timeout,
 };
 
-const COMPILE_TIMEOUT_MS: u64 = 2000;
-const RUN_TIMEOUT_MS: u64 = 2000;
 const OUTPUT_LIMIT: usize = 8192;
+const RATE_LIMIT_WINDOW_SECS: u64 = 60;
+
+#[derive(Clone)]
+struct AppState {
+    semaphore: Arc<Semaphore>,
+    rate_limit: Arc<Mutex<VecDeque<Instant>>>,
+    compile_timeout_ms: u64,
+    run_timeout_ms: u64,
+    rate_limit_per_min: usize,
+}
 
 #[derive(Deserialize)]
 struct RunRequest {
@@ -37,20 +49,60 @@ async fn main() {
     let host = env::var("RUNNER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     let port = env::var("RUNNER_PORT").unwrap_or_else(|_| "4100".to_string());
     let addr = format!("{}:{}", host, port);
+    let max_concurrency: usize = env::var("RUNNER_MAX_CONCURRENCY")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(3);
+    let rate_limit_per_min: usize = env::var("RUNNER_RATE_LIMIT_PER_MIN")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(10);
+    let compile_timeout_ms: u64 = env::var("RUNNER_COMPILE_TIMEOUT_MS")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(2000);
+    let run_timeout_ms: u64 = env::var("RUNNER_RUN_TIMEOUT_MS")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(2000);
 
-    let app = Router::new().route("/run", post(run_code));
+    let state = AppState {
+        semaphore: Arc::new(Semaphore::new(max_concurrency)),
+        rate_limit: Arc::new(Mutex::new(VecDeque::new())),
+        compile_timeout_ms,
+        run_timeout_ms,
+        rate_limit_per_min,
+    };
+
+    let app = Router::new()
+        .route("/run", post(run_code))
+        .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     println!("sandbox-runner listening on http://{}", addr);
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn run_code(Json(payload): Json<RunRequest>) -> Result<Json<RunResponse>, (StatusCode, String)> {
+async fn run_code(
+    State(state): State<AppState>,
+    Json(payload): Json<RunRequest>,
+) -> Result<Json<RunResponse>, (StatusCode, String)> {
     let start = Instant::now();
     let code = payload.code.trim();
     if code.is_empty() {
         return Err((StatusCode::BAD_REQUEST, "Code is required.".to_string()));
     }
+
+    if !check_rate_limit(&state).await {
+        return Err((StatusCode::TOO_MANY_REQUESTS, "Rate limit exceeded.".to_string()));
+    }
+
+    let permit = match state.semaphore.clone().try_acquire_owned() {
+        Ok(permit) => permit,
+        Err(_) => {
+            return Err((StatusCode::TOO_MANY_REQUESTS, "Runner busy.".to_string()));
+        }
+    };
 
     let dir = tempdir().map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Tempdir failed".to_string()))?;
     let source_path = dir.path().join("main.rs");
@@ -68,7 +120,7 @@ async fn run_code(Json(payload): Json<RunRequest>) -> Result<Json<RunResponse>, 
             "-o".to_string(),
             binary_path.to_string_lossy().to_string(),
         ],
-        COMPILE_TIMEOUT_MS,
+        state.compile_timeout_ms,
     )
     .await;
 
@@ -81,7 +133,9 @@ async fn run_code(Json(payload): Json<RunRequest>) -> Result<Json<RunResponse>, 
         }));
     }
 
-    let run_output = run_command(binary_path.to_string_lossy().to_string(), vec![], RUN_TIMEOUT_MS).await;
+    let run_output = run_command(binary_path.to_string_lossy().to_string(), vec![], state.run_timeout_ms).await;
+
+    drop(permit);
 
     Ok(Json(RunResponse {
         stdout: run_output.stdout,
@@ -144,4 +198,22 @@ fn limit_output(text: String) -> String {
     let mut truncated = text[..end].to_string();
     truncated.push_str("\n...output truncated");
     truncated
+}
+
+async fn check_rate_limit(state: &AppState) -> bool {
+    let mut guard = state.rate_limit.lock().await;
+    let now = Instant::now();
+    let window = Duration::from_secs(RATE_LIMIT_WINDOW_SECS);
+    while let Some(front) = guard.front() {
+        if now.duration_since(*front) > window {
+            guard.pop_front();
+        } else {
+            break;
+        }
+    }
+    if guard.len() >= state.rate_limit_per_min {
+        return false;
+    }
+    guard.push_back(now);
+    true
 }
