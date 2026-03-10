@@ -1,16 +1,10 @@
-# Starlight Starter Kit: Basics
+# Rust for TypeScript Developers
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+TypeScript 개발자를 위한 Rust 가이드 문서 프로젝트입니다. 문서는 Astro + Starlight로 구성되어 있고, 예제는 프론트 개발자 관점을 반영합니다.
 
-```
-bun create astro@latest -- --template starlight
-```
+## Project Structure
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+주요 디렉터리/파일은 아래와 같습니다.
 
 ```
 .
@@ -25,25 +19,25 @@ Inside of your Astro + Starlight project, you'll see the following folders and f
 └── tsconfig.json
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+문서는 `src/content/docs/` 아래의 `.md`/`.mdx` 파일로 작성되며, 파일명이 라우트가 됩니다.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+이미지는 `src/assets/`에 두고 Markdown에서 상대 경로로 임베드합니다.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+정적 파일(파비콘 등)은 `public/`에 둡니다.
 
-## 🧞 Commands
+## Commands
 
-All commands are run from the root of the project, from a terminal:
+모든 명령은 프로젝트 루트에서 실행합니다.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
+| Command               | Action                                      |
+| :-------------------- | :------------------------------------------ |
+| `bun install`         | 의존성 설치                                 |
+| `bun dev`             | 로컬 개발 서버 실행 `localhost:4321`        |
+| `bun build`           | 프로덕션 빌드 생성 `./dist/`                |
+| `bun preview`         | 빌드 결과 로컬 미리보기                     |
+| `bun astro ...`       | `astro add`, `astro check` 등 CLI 명령 실행 |
+| `bun astro -- --help` | Astro CLI 도움말                             |
 
-## 👀 Want to learn more?
+## Contributing
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+문서 내용은 `src/content/docs/`에서 수정합니다. 예제 코드는 프론트 개발자 관점을 우선으로 유지합니다.
