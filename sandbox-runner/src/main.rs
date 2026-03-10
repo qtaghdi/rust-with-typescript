@@ -1,12 +1,14 @@
 use axum::{
+    extract::ConnectInfo,
     extract::State,
+    http::HeaderMap,
     http::StatusCode,
     routing::post,
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::VecDeque,
+    collections::{HashMap, VecDeque},
     env,
     process::Stdio,
     sync::Arc,
@@ -25,7 +27,7 @@ const RATE_LIMIT_WINDOW_SECS: u64 = 60;
 #[derive(Clone)]
 struct AppState {
     semaphore: Arc<Semaphore>,
-    rate_limit: Arc<Mutex<VecDeque<Instant>>>,
+    rate_limit: Arc<Mutex<HashMap<String, VecDeque<Instant>>>>,
     compile_timeout_ms: u64,
     run_timeout_ms: u64,
     rate_limit_per_min: usize,
@@ -52,11 +54,11 @@ async fn main() {
     let max_concurrency: usize = env::var("RUNNER_MAX_CONCURRENCY")
         .ok()
         .and_then(|value| value.parse().ok())
-        .unwrap_or(3);
+        .unwrap_or(2);
     let rate_limit_per_min: usize = env::var("RUNNER_RATE_LIMIT_PER_MIN")
         .ok()
         .and_then(|value| value.parse().ok())
-        .unwrap_or(10);
+        .unwrap_or(5);
     let compile_timeout_ms: u64 = env::var("RUNNER_COMPILE_TIMEOUT_MS")
         .ok()
         .and_then(|value| value.parse().ok())
@@ -68,7 +70,7 @@ async fn main() {
 
     let state = AppState {
         semaphore: Arc::new(Semaphore::new(max_concurrency)),
-        rate_limit: Arc::new(Mutex::new(VecDeque::new())),
+        rate_limit: Arc::new(Mutex::new(HashMap::new())),
         compile_timeout_ms,
         run_timeout_ms,
         rate_limit_per_min,
@@ -80,11 +82,15 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     println!("sandbox-runner listening on http://{}", addr);
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app.into_make_service_with_connect_info::<std::net::SocketAddr>())
+        .await
+        .unwrap();
 }
 
 async fn run_code(
     State(state): State<AppState>,
+    ConnectInfo(addr): ConnectInfo<std::net::SocketAddr>,
+    headers: HeaderMap,
     Json(payload): Json<RunRequest>,
 ) -> Result<Json<RunResponse>, (StatusCode, String)> {
     let start = Instant::now();
@@ -93,7 +99,8 @@ async fn run_code(
         return Err((StatusCode::BAD_REQUEST, "Code is required.".to_string()));
     }
 
-    if !check_rate_limit(&state).await {
+    let client_id = client_id_from_request(addr, &headers);
+    if !check_rate_limit(&state, &client_id).await {
         return Err((StatusCode::TOO_MANY_REQUESTS, "Rate limit exceeded.".to_string()));
     }
 
@@ -200,20 +207,35 @@ fn limit_output(text: String) -> String {
     truncated
 }
 
-async fn check_rate_limit(state: &AppState) -> bool {
+fn client_id_from_request(addr: std::net::SocketAddr, headers: &HeaderMap) -> String {
+    if let Some(value) = headers.get("x-forwarded-for") {
+        if let Ok(text) = value.to_str() {
+            if let Some(first) = text.split(',').next() {
+                let trimmed = first.trim();
+                if !trimmed.is_empty() {
+                    return trimmed.to_string();
+                }
+            }
+        }
+    }
+    addr.ip().to_string()
+}
+
+async fn check_rate_limit(state: &AppState, key: &str) -> bool {
     let mut guard = state.rate_limit.lock().await;
     let now = Instant::now();
     let window = Duration::from_secs(RATE_LIMIT_WINDOW_SECS);
-    while let Some(front) = guard.front() {
+    let entry = guard.entry(key.to_string()).or_insert_with(VecDeque::new);
+    while let Some(front) = entry.front() {
         if now.duration_since(*front) > window {
-            guard.pop_front();
+            entry.pop_front();
         } else {
             break;
         }
     }
-    if guard.len() >= state.rate_limit_per_min {
+    if entry.len() >= state.rate_limit_per_min {
         return false;
     }
-    guard.push_back(now);
+    entry.push_back(now);
     true
 }
