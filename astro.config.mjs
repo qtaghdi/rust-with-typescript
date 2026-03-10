@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { runnableCodePlugin } from './src/expressive-code/runnable-plugin.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +15,15 @@ export default defineConfig({
 				replacesTitle: true,
 			},
 			customCss: ['./src/styles/custom.css'],
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						type: 'module',
+						src: '/runnable-code.js',
+					},
+				},
+			],
 			expressiveCode: {
 				themes: ['one-dark-pro', 'github-light'],
 				styleOverrides: {
@@ -21,6 +31,7 @@ export default defineConfig({
 					codeFontFamily: "'JetBrains Mono', 'Fira Code', monospace",
 					codeFontSize: '0.88em',
 				},
+				plugins: [runnableCodePlugin()],
 			},
 			social: [
 				{
