@@ -5,6 +5,8 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { getRunnableCodeHashes, isRunnableCode, normalizeRunnableCode } from '../../lib/runnable-code';
 
+export const prerender = false;
+
 const COMPILE_TIMEOUT_MS = 2000;
 const RUN_TIMEOUT_MS = 2000;
 const OUTPUT_LIMIT = 8192;
@@ -60,12 +62,17 @@ async function runCommand(command: string, args: string[], cwd: string, timeoutM
 export const POST: APIRoute = async ({ request }) => {
   const start = Date.now();
   const headers = { 'Content-Type': 'application/json' };
-  const contentType = request.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    return new Response(JSON.stringify({ error: 'Invalid content type.' }), { status: 400, headers });
+  const bodyText = await request.text().catch(() => '');
+  const body = (() => {
+    try {
+      return JSON.parse(bodyText || '{}');
+    } catch {
+      return null;
+    }
+  })();
+  if (!body) {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body.' }), { status: 400, headers });
   }
-
-  const body = await request.json().catch(() => null);
   const code = typeof body?.code === 'string' ? body.code : '';
   if (!code.trim()) {
     return new Response(JSON.stringify({ error: 'Code is required.' }), { status: 400, headers });
