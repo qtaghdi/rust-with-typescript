@@ -873,4 +873,15 @@ Rust의 `enum`과 `match`는 TypeScript의 discriminated union과 `switch`에서
 
 TypeScript에서 discriminated union 패턴을 자주 써봤다면, Rust의 enum과 match는 그 패턴을 언어 레벨에서 제대로 지원하는 것처럼 느껴질 것입니다. 한 번 익숙해지면 TypeScript로 돌아갔을 때 exhaustive 검사의 부재가 오히려 불안하게 느껴질 정도입니다.
 
-다음 챕터에서는 Rust의 트레이트(trait) 시스템을 TypeScript의 인터페이스와 비교해 살펴봅니다.
+---
+
+## 프론트 관점 매핑
+
+- UI 상태 머신(loading/success/error) ↔ Rust의 `enum` + `match`
+- React에서 상태 전환을 함수로 관리 ↔ Rust는 enum에 메서드를 붙여 전환을 캡슐화
+- switch 누락으로 생기는 버그 ↔ Rust는 exhaustive match로 컴파일 단계에서 차단
+
+## 챕터 연결
+
+이전 챕터에서는 기본 문법과 타입 대응을 정리했다.
+다음 챕터에서는 Rust의 트레이트(trait) 시스템을 TypeScript의 인터페이스와 비교해 살펴본다.
