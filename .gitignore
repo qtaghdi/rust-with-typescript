@@ -156,9 +156,9 @@ fabric.properties
 node_modules
 dist/
 .claude/
-ch0-intro.md
-ch1-mental-model.md
-ch2-syntax.md
-ch3-ownership.md
-ch4-practical.md
-ch5-roadmap.md
+/ch0-intro.md
+/ch1-mental-model.md
+/ch2-syntax.md
+/ch3-ownership.md
+/ch4-practical.md
+/ch5-roadmap.md
