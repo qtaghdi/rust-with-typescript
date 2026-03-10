@@ -8,7 +8,7 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Rust with TypeScript',
-			description: 'TypeScript(특히 React) 개발자를 위한 Rust 학습 가이드',
+			description: 'TypeScript 개발자를 위한 실전 Rust 가이드',
 			logo: {
 				light: './src/assets/logo-light.svg',
 				dark:  './src/assets/logo-dark.svg',
