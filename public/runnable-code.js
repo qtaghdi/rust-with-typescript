@@ -1,17 +1,60 @@
+/**
+ * @file runnable-code.js
+ *
+ * Client-side handler for interactive Rust code execution.
+ *
+ * ### Flow
+ * 1. On page load, query all `figure.ec-runnable` elements (marked at build
+ *    time by `src/expressive-code/runnable-plugin.mjs`).
+ * 2. Send a warm-up GET to `/api/run-rust` so the Fly.io sandbox machine
+ *    wakes up before the user clicks Run.
+ * 3. Inject a **Run** button into each code block's header toolbar and a
+ *    terminal-style output panel immediately after the `<figure>`.
+ * 4. On click, POST the code to `/api/run-rust` and render the result.
+ *
+ * ### Astro SPA compatibility
+ * Re-runs on `astro:page-load` and `astro:after-swap` to handle client-side
+ * navigation. A `data-run-attached` guard prevents duplicate buttons.
+ */
+
+/** @type {string} API endpoint for code execution and warm-up pings */
 const RUN_ENDPOINT = '/api/run-rust';
+
+/** Maximum characters of stdout/stderr to display before truncating */
 const OUTPUT_LIMIT = 8192;
 
+/**
+ * Decode the code string stored in Expressive Code's copy button.
+ * EC encodes newlines as U+007F (`\x7f`) in the `data-code` attribute.
+ *
+ * @param {HTMLButtonElement} button
+ * @returns {string} Decoded, normalised source code
+ */
 function decodeCodeFromCopyButton(button) {
   const raw = button.getAttribute('data-code') || '';
   return raw.replace(/\u007f/g, '\n').replace(/\r\n/g, '\n').trimEnd();
 }
 
+/**
+ * Build the terminal output DOM structure and return live references.
+ *
+ * Rendered structure:
+ * ```
+ * div.ec-runnable-output
+ *   div.ec-runnable-output-header   (traffic-light dots + "Output" label)
+ *   div.ec-runnable-output-body
+ *     pre.ec-runnable-output-pre    ← stdout / stderr rendered here
+ *   div.ec-runnable-output-footer   ← exit-code badge + duration
+ * ```
+ *
+ * @returns {{ wrapper: HTMLDivElement, pre: HTMLPreElement, footer: HTMLDivElement }}
+ */
 function createOutputElement() {
   const wrapper = document.createElement('div');
   wrapper.className = 'ec-runnable-output';
   wrapper.hidden = true;
 
-  // Terminal header
+  // Header: macOS-style traffic-light dots + "Output" label
   const header = document.createElement('div');
   header.className = 'ec-runnable-output-header';
 
@@ -29,7 +72,7 @@ function createOutputElement() {
   header.appendChild(dots);
   header.appendChild(title);
 
-  // Body
+  // Body: pre element that holds stdout / stderr text
   const body = document.createElement('div');
   body.className = 'ec-runnable-output-body';
 
@@ -37,7 +80,7 @@ function createOutputElement() {
   pre.className = 'ec-runnable-output-pre';
   body.appendChild(pre);
 
-  // Footer
+  // Footer: exit-code badge + wall-clock duration
   const footer = document.createElement('div');
   footer.className = 'ec-runnable-output-footer';
   footer.hidden = true;
@@ -49,12 +92,19 @@ function createOutputElement() {
   return { wrapper, pre, footer };
 }
 
+/**
+ * Populate the output panel with the result of a run.
+ *
+ * @param {HTMLPreElement} pre
+ * @param {HTMLDivElement} footer
+ * @param {{ error?: string, stdout?: string, stderr?: string, exitCode?: number, durationMs?: number }} payload
+ */
 function setOutputContent(pre, footer, payload) {
-  // Clear previous content
   pre.innerHTML = '';
   footer.innerHTML = '';
   footer.hidden = false;
 
+  // API-level error (network failure, 403 not-allowed, 502 runner error, etc.)
   if (payload.error) {
     const span = document.createElement('span');
     span.className = 'ec-out-stderr';
@@ -80,6 +130,7 @@ function setOutputContent(pre, footer, payload) {
   if (stderr) {
     const span = document.createElement('span');
     span.className = 'ec-out-stderr';
+    // Prepend newline when stdout is also present to visually separate them
     span.textContent = (stdout ? '\n' : '') + (stderr.length > OUTPUT_LIMIT
       ? stderr.slice(0, OUTPUT_LIMIT) + '\n...output truncated'
       : stderr);
@@ -93,7 +144,7 @@ function setOutputContent(pre, footer, payload) {
     pre.appendChild(span);
   }
 
-  // Footer: exit code badge + duration
+  // Exit-code badge: green for 0, red for anything else
   const badge = document.createElement('span');
   badge.className = exitCode === 0 ? 'ec-out-badge ec-out-badge-ok' : 'ec-out-badge ec-out-badge-err';
   badge.textContent = exitCode === 0 ? '✓ exit 0' : `✗ exit ${exitCode}`;
@@ -106,6 +157,11 @@ function setOutputContent(pre, footer, payload) {
   footer.appendChild(time);
 }
 
+/**
+ * POST code to the API and update the output panel.
+ *
+ * @param {{ code: string, outputPre: HTMLPreElement, outputFooter: HTMLDivElement, outputWrapper: HTMLDivElement, runButton: HTMLButtonElement }} opts
+ */
 async function runCode({ code, outputPre, outputFooter, outputWrapper, runButton }) {
   runButton.disabled = true;
   runButton.textContent = 'Running...';
@@ -132,10 +188,20 @@ async function runCode({ code, outputPre, outputFooter, outputWrapper, runButton
   }
 }
 
+/**
+ * Fire-and-forget GET ping to wake the Fly.io sandbox machine.
+ * Called once per page if any runnable blocks are present.
+ */
 function warmUpRunner() {
   fetch(RUN_ENDPOINT, { method: 'GET' }).catch(() => {});
 }
 
+/**
+ * Find all unprocessed `figure.ec-runnable` blocks on the current page,
+ * attach a Run button and terminal output panel to each.
+ *
+ * Idempotent — skips blocks already marked with `data-run-attached="true"`.
+ */
 function setupRunnableBlocks() {
   const runnableBlocks = document.querySelectorAll('figure.ec-runnable');
   if (!runnableBlocks.length) return;
@@ -143,10 +209,15 @@ function setupRunnableBlocks() {
   warmUpRunner();
 
   runnableBlocks.forEach((figure) => {
+    // Skip blocks already initialised (e.g. on repeated astro:page-load events)
     if (figure.dataset.runAttached === 'true') return;
     figure.dataset.runAttached = 'true';
+
+    // Only process Rust blocks (data-language set by the EC plugin)
     const language = figure.dataset.language;
     if (language && language !== 'rust') return;
+
+    // EC renders a visually hidden copy button that holds the raw source code
     const copyButton = figure.querySelector('button[data-code]');
     if (!copyButton) return;
 
@@ -156,9 +227,11 @@ function setupRunnableBlocks() {
     const header = figure.querySelector('figcaption.header');
     if (!header) return;
 
+    // Insert the terminal output panel immediately after the code block
     const { wrapper, pre: outputPre, footer: outputFooter } = createOutputElement();
     figure.insertAdjacentElement('afterend', wrapper);
 
+    // Inject the Run button into the code block's header toolbar
     const actions = document.createElement('div');
     actions.className = 'ec-runnable-actions';
 
@@ -175,11 +248,15 @@ function setupRunnableBlocks() {
   });
 }
 
+// --- Initialisation ---
+
+// Standard page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupRunnableBlocks);
 } else {
   setupRunnableBlocks();
 }
 
+// Astro View Transitions / client-side navigation
 document.addEventListener('astro:page-load', setupRunnableBlocks);
 document.addEventListener('astro:after-swap', setupRunnableBlocks);
