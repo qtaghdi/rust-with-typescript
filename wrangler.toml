@@ -9,6 +9,3 @@ directory = "dist"
 [vars]
 RUST_RUNNER_URL = "https://rust-sandbox-runner.fly.dev/run"
 
-[[routes]]
-pattern = "qtaghdi.com/*"
-zone_name = "qtaghdi.com"
