@@ -1,11 +1,11 @@
 ---
 title: Rust with TypeScript
-description: TypeScript 개발자를 위한 실전 Rust 가이드
+description: A practical Rust guide for TypeScript developers
 template: splash
 hero:
-  tagline: TypeScript를 알면, Rust는 생각보다 가깝습니다.
+  tagline: If you know TypeScript, Rust is closer than you think.
   actions:
-    - text: 시작하기
+    - text: Get Started
       link: /ch0-intro/
       icon: right-arrow
       variant: primary
@@ -20,19 +20,19 @@ import { Card, CardGrid, Badge, Aside, Steps } from '@astrojs/starlight/componen
 <div class="code-compare">
 
 ```typescript title="TypeScript"
-// 에러가 타입에 없음
+// Errors are absent from types
 async function getUser(id: string) {
   const res = await fetch(`/api/users/${id}`);
-  const user = await res.json(); // any 타입
-  return user.name.toUpperCase(); // 런타임에 터질 수 있음
+  const user = await res.json(); // inferred as `any`
+  return user.name.toUpperCase(); // may crash at runtime
 }
 ```
 
 ```rust title="Rust"
-// 에러가 타입에 명시됨
+// Errors are explicit in the type signature
 async fn get_user(id: &str) -> Result<String, Error> {
-  let user: User = fetch_user(id).await?; // 컴파일타임 검증
-  Ok(user.name.to_uppercase()) // None이면 컴파일 에러
+  let user: User = fetch_user(id).await?; // validated at compile time
+  Ok(user.name.to_uppercase()) // None case caught at compile time
 }
 ```
 
@@ -40,94 +40,94 @@ async fn get_user(id: &str) -> Result<String, Error> {
 
 ---
 
-<Aside type="tip" title="이 가이드는 누구를 위한 건가요?">
-TypeScript로 실무 개발을 하고 있고, Rust를 배워보고 싶은 분을 위해 쓰였습니다.
-`any` 쓰는 걸 싫어하고, 타입이 주는 안전망의 가치를 알고 있다면 — Rust가 잘 맞을 겁니다.
+<Aside type="tip" title="Who is this guide for?">
+Written for developers who build production software with TypeScript and want to learn Rust.
+If you avoid `any`, value the safety net that types provide, and want predictable performance — Rust will feel like a natural next step.
 </Aside>
 
 ---
 
-## 챕터 구성
+## Chapters
 
 <CardGrid stagger>
-  <Card title="Ch.1 — 들어가며" icon="open-book">
-    TypeScript로 충분한데 왜 Rust를 배워야 할까요? 런타임 에러, 성능 한계, GC pause — TS 개발자라면 공감할 이유들을 설명합니다.
+  <Card title="Ch.1 — Introduction" icon="open-book">
+    TypeScript is already good enough — so why Rust? Runtime errors, performance ceilings, GC pauses. Real pain points every TypeScript developer has hit.
   </Card>
-  <Card title="Ch.2 — 멘탈 모델" icon="puzzle">
-    GC vs Ownership, 런타임 vs 컴파일타임 안전성, 제로코스트 추상화. 문법보다 **사고방식**을 먼저 바꿔야 합니다.
+  <Card title="Ch.2 — Mental Model" icon="puzzle">
+    GC vs Ownership, runtime vs compile-time safety, zero-cost abstractions. Before syntax, you need to shift **how you think**.
   </Card>
-  <Card title="Ch.3 — 문법 기초" icon="document">
-    변수, 함수, struct/trait, Option, Result, async/await, 제네릭 — TypeScript 코드 옆에 Rust 코드를 나란히 봅니다.
+  <Card title="Ch.3 — Syntax Basics" icon="document">
+    Variables, functions, structs, traits, Option, Result, async/await, generics — TypeScript and Rust side by side.
   </Card>
   <Card title="Ch.4 — Ownership & Borrowing" icon="warning">
-    Borrow Checker가 왜 막는지, 스택/힙부터 Lifetime까지. **"JS에서는 되는데 왜 안 되지?"** 질문에 직접 답합니다.
+    Why the borrow checker says no, stack vs heap, lifetimes. Direct answers to **"why does this work in JS but not Rust?"**
   </Card>
-  <Card title="Ch.5 — Cargo & 모듈 시스템" icon="seti:config">
-    npm/package.json에서 Cargo.toml로. 패키지 매니저, 모듈 선언, pub/use 키워드를 TypeScript import/export와 비교합니다.
+  <Card title="Ch.5 — Cargo & Modules" icon="seti:config">
+    From npm and package.json to Cargo.toml. Package manager, module declarations, pub/use — compared to TypeScript import/export.
   </Card>
-  <Card title="Ch.6 — Enum & 패턴 매칭" icon="list-format">
-    TypeScript union type의 Rust 버전. `match`의 exhaustive 강제가 왜 더 안전한지 상태 머신 예제로 보여줍니다.
+  <Card title="Ch.6 — Enums & Pattern Matching" icon="list-format">
+    TypeScript union types, Rust-style. Why `match`'s exhaustiveness requirement makes your code safer — shown through a state machine example.
   </Card>
-  <Card title="Ch.7 — 컬렉션" icon="seti:db">
-    Array/Map/String vs Vec/HashMap/String. 소유권이 컬렉션과 어떻게 얽히는지까지 다룹니다.
+  <Card title="Ch.7 — Collections" icon="seti:db">
+    Array/Map/String vs Vec/HashMap/String. How ownership interacts with collections, and when to clone vs borrow.
   </Card>
-  <Card title="Ch.8 — 이터레이터 & 클로저" icon="rocket">
-    `.map().filter().collect()` 체이닝이 왜 C 루프만큼 빠른지 — 제로코스트 추상화의 실체를 봅니다.
+  <Card title="Ch.8 — Iterators & Closures" icon="rocket">
+    Why `.map().filter().collect()` chains compile down to the same assembly as a C for-loop — zero-cost abstractions in action.
   </Card>
-  <Card title="Ch.9 — Trait 심화" icon="star">
-    `dyn Trait`, `Display`, `From/Into`, 트레이트 객체. TypeScript interface가 할 수 없는 것들을 Rust trait으로.
+  <Card title="Ch.9 — Traits in Depth" icon="star">
+    `dyn Trait`, `Display`, `From/Into`, trait objects. What TypeScript interfaces can't do — and how Rust traits fill that gap.
   </Card>
-  <Card title="Ch.10 — 실전 예제" icon="laptop">
-    React vs Leptos, Zod vs Serde, `?` 연산자와 커스텀 에러 타입. 실제 프로젝트에서 쓰는 패턴을 직접 비교합니다.
+  <Card title="Ch.10 — Smart Pointers" icon="laptop">
+    Box, Rc, Arc, RefCell — when to use each, and how they map to familiar JavaScript reference patterns.
   </Card>
-  <Card title="Ch.11 — 테스트" icon="approve-check-circle">
-    Jest/Vitest에서 Rust 내장 테스트로. `#[test]`, `cargo test`, 문서 테스트까지 — 외부 라이브러리 없이 시작합니다.
+  <Card title="Ch.11 — Concurrency" icon="approve-check-circle">
+    Threads, channels, Mutex, async runtimes. How Rust prevents data races at compile time — something no JS runtime can do.
   </Card>
-  <Card title="Ch.12 — 학습 로드맵" icon="moon">
-    6개월 커리큘럼, 추천 리소스, TypeScript 개발자를 위한 특별 팁. Borrow Checker와 싸우다 지치지 않는 법.
+  <Card title="Ch.14 — Learning Roadmap" icon="moon">
+    A 6-month curriculum, curated resources, and tips for TypeScript developers. How to stop fighting the borrow checker and start working with it.
   </Card>
 </CardGrid>
 
 ---
 
-## 학습 경로
+## Learning Path
 
 <Steps>
 
-1. **사고방식 전환** (Ch.1–2)
+1. **Shift your mindset** (Ch.1–2)
 
-   문법 전에 철학부터. GC 없이 메모리가 안전한 이유, 컴파일타임이 런타임보다 더 많은 걸 보장하는 이유를 이해합니다.
+   Philosophy before syntax. Understand why memory is safe without GC, and why compile-time guarantees beat runtime checks.
 
-2. **핵심 언어 습득** (Ch.3–5)
+2. **Learn the core language** (Ch.3–5)
 
-   TypeScript와 1:1로 대응하는 Rust 문법, **Ownership & Borrowing**, **Cargo & 모듈 시스템**을 차례로 소화합니다.
+   Rust syntax mapped 1:1 to TypeScript concepts, **Ownership & Borrowing**, and the **Cargo module system** — in sequence.
 
-3. **타입 시스템 마스터** (Ch.6–9)
+3. **Master the type system** (Ch.6–9)
 
-   Enum, 컬렉션, 이터레이터, Trait까지. 이 단계를 끝내면 Rust 코드를 읽고 쓰는 데 막히지 않습니다.
+   Enums, collections, iterators, traits. After this, you can read and write Rust without getting stuck.
 
-4. **실전 적용** (Ch.10–12)
+4. **Apply it in practice** (Ch.10–14)
 
-   실제 프로젝트 패턴, 테스트 작성, 6개월 로드맵으로 독학 계획을 세웁니다.
+   Smart pointers, concurrency, real-world patterns, testing, and a roadmap to guide your self-study.
 
 </Steps>
 
 ---
 
-## TypeScript → Rust, 뭐가 바뀌나요?
+## TypeScript → Rust: What Changes?
 
 | | TypeScript | Rust |
 |--|--|--|
-| 타입 안전성 | 컴파일 타임 (부분적) | 컴파일 타임 (전면적) |
-| Null 안전성 | `T \| null` + optional chaining | `Option<T>` + exhaustive match |
-| 에러 처리 | `try/catch` (타입 없음) | `Result<T, E>` (타입 강제) |
-| 메모리 | GC (자동, pause 있음) | Ownership (zero-cost) |
-| 성능 | Node.js 수준 | C/C++ 수준 |
-| 동시성 안전성 | 런타임에서만 확인 | 컴파일 타임에 데이터 레이스 차단 |
+| Type safety | Compile-time (partial) | Compile-time (comprehensive) |
+| Null safety | `T \| null` + optional chaining | `Option<T>` + exhaustive match |
+| Error handling | `try/catch` (untyped) | `Result<T, E>` (typed, enforced) |
+| Memory | GC (automatic, with pauses) | Ownership (zero-cost) |
+| Performance | Node.js level | C/C++ level |
+| Concurrency safety | Checked at runtime | Data races blocked at compile time |
 
-Rust는 TypeScript가 하고 싶었던 것의 **완성판**처럼 느껴질 수 있습니다.
+Rust often feels like the **completed version of what TypeScript was reaching for**.
 
-<Aside type="caution" title="러닝 커브에 대해서">
-Ownership과 Borrow Checker는 처음엔 컴파일러와 싸우는 느낌을 줍니다.
-하지만 그 싸움에서 이기고 나면, **"이 코드는 안전하다"는 확신을 가지고 배포**할 수 있게 됩니다.
+<Aside type="caution" title="On the learning curve">
+Ownership and the borrow checker feel like fighting the compiler at first.
+But once you win that fight, you can ship with the confidence that **if it compiles, it's correct**.
 </Aside>
