@@ -2,13 +2,23 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import cloudflare from '@astrojs/cloudflare';
+import sitemap from '@astrojs/sitemap';
 import { runnableCodePlugin } from './src/expressive-code/runnable-plugin.mjs';
+
+const SITE_URL = 'https://rust-with-typescript.pages.dev';
 
 // https://astro.build/config
 export default defineConfig({
+	site: SITE_URL,
 	output: 'server',
 	adapter: cloudflare({ imageService: 'compile' }),
 	integrations: [
+		sitemap({
+			i18n: {
+				defaultLocale: 'en',
+				locales: { en: 'en-US', ko: 'ko-KR' },
+			},
+		}),
 		starlight({
 			title: 'Rust with TypeScript',
 			description: 'A practical Rust guide for TypeScript developers',
@@ -24,20 +34,14 @@ export default defineConfig({
 			},
 			customCss: ['./src/styles/custom.scss'],
 			head: [
+				// ── Fonts ────────────────────────────────────────────────
 				{
 					tag: 'link',
-					attrs: {
-						rel: 'preconnect',
-						href: 'https://fonts.googleapis.com',
-					},
+					attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
 				},
 				{
 					tag: 'link',
-					attrs: {
-						rel: 'preconnect',
-						href: 'https://fonts.gstatic.com',
-						crossorigin: true,
-					},
+					attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: true },
 				},
 				{
 					tag: 'link',
@@ -46,12 +50,53 @@ export default defineConfig({
 						href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap',
 					},
 				},
+				// ── Inline Rust runner ───────────────────────────────────
 				{
 					tag: 'script',
-					attrs: {
-						type: 'module',
-						src: '/runnable-code.js',
-					},
+					attrs: { type: 'module', src: '/runnable-code.js' },
+				},
+				// ── Open Graph ───────────────────────────────────────────
+				{ tag: 'meta', attrs: { property: 'og:type',         content: 'website' } },
+				{ tag: 'meta', attrs: { property: 'og:site_name',    content: 'Rust with TypeScript' } },
+				{ tag: 'meta', attrs: { property: 'og:image',        content: `${SITE_URL}/og-image.png` } },
+				{ tag: 'meta', attrs: { property: 'og:image:width',  content: '1200' } },
+				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+				{ tag: 'meta', attrs: { property: 'og:image:alt',    content: 'Rust with TypeScript — A practical guide for TypeScript developers' } },
+				// ── Twitter Card ─────────────────────────────────────────
+				{ tag: 'meta', attrs: { name: 'twitter:card',      content: 'summary_large_image' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image',     content: `${SITE_URL}/og-image.png` } },
+				{ tag: 'meta', attrs: { name: 'twitter:image:alt', content: 'Rust with TypeScript — A practical guide for TypeScript developers' } },
+				// ── JSON-LD structured data ──────────────────────────────
+				{
+					tag: 'script',
+					attrs: { type: 'application/ld+json' },
+					content: JSON.stringify({
+						'@context': 'https://schema.org',
+						'@type': 'TechArticle',
+						name: 'Rust with TypeScript',
+						description:
+							'A practical Rust learning guide for TypeScript developers. Side-by-side comparisons, ownership explained from a JS perspective, and runnable code examples.',
+						url: SITE_URL,
+						image: `${SITE_URL}/og-image.png`,
+						inLanguage: ['en', 'ko'],
+						author: {
+							'@type': 'Person',
+							name: 'qtaghdi',
+							url: 'https://github.com/qtaghdi',
+						},
+						publisher: {
+							'@type': 'Organization',
+							name: 'Rust with TypeScript',
+							url: SITE_URL,
+						},
+						educationalLevel: 'Intermediate',
+						teaches: [
+							'Rust programming language',
+							'Systems programming',
+							'Memory safety',
+							'Ownership and borrowing',
+						],
+					}),
 				},
 			],
 			expressiveCode: {
@@ -83,9 +128,9 @@ export default defineConfig({
 					label: 'Core Language',
 					translations: { ko: '핵심 언어' },
 					items: [
-						{ label: 'Ch.3 — Syntax Basics',       translations: { ko: 'Ch.3 — 문법 기초' },           slug: 'ch2-syntax' },
+						{ label: 'Ch.3 — Syntax Basics',         translations: { ko: 'Ch.3 — 문법 기초' },             slug: 'ch2-syntax' },
 						{ label: 'Ch.4 — Ownership & Borrowing', translations: { ko: 'Ch.4 — Ownership & Borrowing' }, slug: 'ch3-ownership' },
-						{ label: 'Ch.5 — Cargo & Modules',     translations: { ko: 'Ch.5 — Cargo & 모듈 시스템' },  slug: 'ch10-cargo' },
+						{ label: 'Ch.5 — Cargo & Modules',       translations: { ko: 'Ch.5 — Cargo & 모듈 시스템' },   slug: 'ch10-cargo' },
 					],
 				},
 				{
@@ -113,8 +158,8 @@ export default defineConfig({
 					label: 'Reference',
 					translations: { ko: '레퍼런스' },
 					items: [
-						{ label: 'Glossary',     translations: { ko: '용어 사전' },  slug: 'glossary' },
-						{ label: 'Contributing', translations: { ko: '기여하기' },   slug: 'contributing' },
+						{ label: 'Glossary',     translations: { ko: '용어 사전' }, slug: 'glossary' },
+						{ label: 'Contributing', translations: { ko: '기여하기' },  slug: 'contributing' },
 					],
 				},
 			],

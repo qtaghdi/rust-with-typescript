@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block API routes from indexing
+Disallow: /api/
+
+Sitemap: https://rust-with-typescript.pages.dev/sitemap-index.xml

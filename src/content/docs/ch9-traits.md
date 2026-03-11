@@ -1,6 +1,6 @@
 ---
 title: "Ch.9 — Traits In Depth"
-description: "The limits of TypeScript interfaces and the power of Rust traits — Display, Clone, From/Into, and beyond"
+description: "dyn Trait, Display, From/Into, blanket implementations — how Rust traits go beyond TypeScript interfaces for truly reusable abstractions"
 ---
 
 ## 1. Trait Review & Differences from interface

@@ -1,6 +1,6 @@
 ---
 title: "Ch.6 — Enum & Pattern Matching"
-description: "TypeScript union types vs Rust enums, and the power of match"
+description: "TypeScript union types vs Rust enums, exhaustive match, Option/Result patterns, and a real-world state machine example"
 ---
 
 When working with TypeScript, you often reach for union types like `string | number | null` or discriminated unions.
