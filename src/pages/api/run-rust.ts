@@ -3,7 +3,12 @@ import { getRunnableCodeHashes, isRunnableCode, normalizeRunnableCode } from '..
 
 export const prerender = false;
 
+const RUNNER_URL =
+  (import.meta.env.RUST_RUNNER_URL as string | undefined) ??
+  process.env.RUST_RUNNER_URL ??
+  'http://127.0.0.1:4100/run';
 const HEALTH_URL = RUNNER_URL.replace(/\/run$/, '/health');
+const RUNNER_TIMEOUT_MS = 15000;
 
 export const GET: APIRoute = async () => {
   try {
@@ -13,13 +18,6 @@ export const GET: APIRoute = async () => {
   }
   return new Response(null, { status: 204 });
 };
-
-const RUNNER_URL =
-  (import.meta.env.RUST_RUNNER_URL as string | undefined) ??
-  process.env.RUST_RUNNER_URL ??
-  'http://127.0.0.1:4100/run';
-const RUNNER_TIMEOUT_MS = 15000;
-console.log('[run-rust] RUNNER_URL =', RUNNER_URL);
 
 export const POST: APIRoute = async ({ request }) => {
   const start = Date.now();
