@@ -113,7 +113,8 @@ export default defineConfig({
 					label: 'Reference',
 					translations: { ko: '레퍼런스' },
 					items: [
-						{ label: 'Glossary', translations: { ko: '용어 사전' }, slug: 'glossary' },
+						{ label: 'Glossary',     translations: { ko: '용어 사전' },  slug: 'glossary' },
+						{ label: 'Contributing', translations: { ko: '기여하기' },   slug: 'contributing' },
 					],
 				},
 			],
