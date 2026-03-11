@@ -185,7 +185,7 @@ let sum: i32 = numbers.iter().fold(0, |acc, n| acc + n);
 
 ### TypeScript interface vs Rust struct
 
-TypeScript의 `interface`는 객체의 형태(shape)를 정의합니다. Rust에서 데이터 구조는 `struct`로, 동작은 `impl`과 `trait`으로 분리합니다.
+TypeScript의 `interface`는 객체의 형태(shape)를 정의합니다. Rust에서 데이터 구조는 [`struct`](/glossary/#타입-시스템)로, 동작은 `impl`과 [`trait`](/glossary/#타입-시스템)으로 분리합니다.
 
 ```typescript
 // TypeScript
@@ -323,7 +323,7 @@ if (user !== null && user !== undefined) {
 
 ### Rust의 Option\<T\>
 
-Rust에는 `null`이 없습니다. 대신 값이 있을 수도 없을 수도 있는 상황을 `Option<T>`로 표현합니다.
+Rust에는 `null`이 없습니다. 대신 값이 있을 수도 없을 수도 있는 상황을 [`Option<T>`](/glossary/#타입-시스템)로 표현합니다.
 
 ```rust
 // Rust
@@ -410,6 +410,8 @@ async function processData(path: string): Promise<Data> {
 
 ### Rust의 Result\<T, E\>
 
+[`Result<T, E>`](/glossary/#에러-처리)는 성공(`Ok(T)`) 또는 실패(`Err(E)`)를 타입으로 표현합니다. 함수 시그니처에 에러 가능성이 명시되어, 컴파일러가 처리를 강제합니다.
+
 ```rust
 use std::fs;
 use std::io;
@@ -442,7 +444,7 @@ match process_data("config.json") {
 let data = process_data("config.json").expect("Failed to load config");
 ```
 
-### ? 연산자: try/catch 체이닝의 깔끔한 대안
+### [`?` 연산자](/glossary/#unwrap-vs-expect-vs-): try/catch 체이닝의 깔끔한 대안
 
 ```typescript
 // TypeScript — 중첩 try/catch

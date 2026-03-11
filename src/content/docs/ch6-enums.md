@@ -228,7 +228,7 @@ fn main() {
 
 ---
 
-## 6-3. match 표현식 — TypeScript switch vs Rust match
+## 6-3. [`match`](/glossary/#변수--제어-흐름) 표현식 — TypeScript switch vs Rust match
 
 ### TypeScript: switch 문
 
@@ -422,7 +422,7 @@ TypeScript 쪽은 `p.kind` 체크와 프로퍼티 접근이 분리되어 있고,
 
 ## 6-4. Option\<T\>와 match — null 안전성의 핵심
 
-Ch.2에서 잠깐 봤던 `Option<T>`를 이제 더 깊이 살펴봅니다. Rust에는 `null`이나 `undefined`가 없습니다. "값이 없을 수 있다"는 상황은 항상 `Option<T>`로 표현합니다.
+Ch.2에서 잠깐 봤던 [`Option<T>`](/glossary/#타입-시스템)를 이제 더 깊이 살펴봅니다. Rust에는 `null`이나 `undefined`가 없습니다. "값이 없을 수 있다"는 상황은 항상 `Option<T>`로 표현합니다.
 
 ### TypeScript: null / undefined
 

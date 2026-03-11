@@ -3,7 +3,7 @@ title: "Ch.5 — Cargo & 모듈 시스템"
 description: "npm/package.json에서 Cargo.toml로 — Rust의 패키지 매니저와 모듈 시스템 완전 정복"
 ---
 
-TypeScript 개발자에게 npm/yarn은 일상입니다. 의존성 설치, 스크립트 실행, 빌드 — 모두 npm을 통해 처리하죠. Rust의 **Cargo**는 그 역할을 훨씬 통합적으로 수행하는 공식 패키지 매니저이자 빌드 도구입니다. npm + tsc + jest + typedoc을 하나로 합쳐놓은 것이라고 생각하면 됩니다. 그리고 Cargo는 단순한 도구가 아니라 Rust의 **모듈 시스템**과 긴밀하게 연결되어 있습니다.
+TypeScript 개발자에게 npm/yarn은 일상입니다. 의존성 설치, 스크립트 실행, 빌드 — 모두 npm을 통해 처리하죠. Rust의 **[Cargo](/glossary/#패키지--도구)**는 그 역할을 훨씬 통합적으로 수행하는 공식 패키지 매니저이자 빌드 도구입니다. npm + tsc + jest + typedoc을 하나로 합쳐놓은 것이라고 생각하면 됩니다. 그리고 Cargo는 단순한 도구가 아니라 Rust의 **모듈 시스템**과 긴밀하게 연결되어 있습니다.
 
 ---
 
@@ -98,7 +98,7 @@ assert_eq = "1.0"
 
 **`cargo build --release`** — 개발 빌드(`cargo build`)와 달리 최적화를 최대로 켜서 컴파일합니다. 파일 크기와 실행 속도 모두 크게 개선됩니다. 프로덕션 배포 전에 반드시 사용하세요.
 
-**`cargo clippy`** — Rust 공식 린터입니다. "이렇게 쓰면 더 관용적인 Rust다"라는 조언을 풍부하게 제공합니다. TypeScript의 ESLint보다 훨씬 적극적으로 코드 품질을 지적합니다.
+**[`cargo clippy`](/glossary/#패키지--도구)** — Rust 공식 린터입니다. "이렇게 쓰면 더 관용적인 Rust다"라는 조언을 풍부하게 제공합니다. TypeScript의 ESLint보다 훨씬 적극적으로 코드 품질을 지적합니다.
 
 **`cargo doc --open`** — 코드의 주석(`///`)을 기반으로 HTML 문서를 자동 생성하고 브라우저로 엽니다. 의존성의 문서도 함께 포함됩니다.
 

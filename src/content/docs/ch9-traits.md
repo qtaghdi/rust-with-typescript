@@ -182,7 +182,7 @@ struct Point {
 // 이제 println!("{:?}", p) 가능
 ```
 
-### Clone / Copy
+### [Clone / Copy](/glossary/#clone-vs-copy)
 
 TypeScript에서는 객체 복사가 참조 복사인지 값 복사인지 명확하지 않을 때가 많다. Rust는 명확하게 구분한다.
 
@@ -345,7 +345,7 @@ fn main() {
 
 ## 3. Trait 객체 (동적 디스패치)
 
-제네릭은 컴파일 타임에 타입이 결정되지만, 때로는 **런타임에 다양한 타입**을 다뤄야 할 때가 있다. TypeScript에서 interface를 타입으로 쓰는 것처럼, Rust에서는 `dyn Trait`을 사용한다.
+제네릭은 컴파일 타임에 타입이 결정되지만, 때로는 **런타임에 다양한 타입**을 다뤄야 할 때가 있다. TypeScript에서 interface를 타입으로 쓰는 것처럼, Rust에서는 [`dyn Trait`](/glossary/#impl-trait-vs-dyn-trait)을 사용한다.
 
 ### TypeScript: interface를 타입으로 쓰기
 
@@ -419,9 +419,9 @@ fn main() {
 }
 ```
 
-`Box<dyn Shape>`에서 `Box`가 필요한 이유: `dyn Shape`는 크기를 컴파일 타임에 알 수 없다(`Circle`과 `Rectangle`의 크기가 다르니까). `Box`로 힙에 올려야 포인터(고정 크기)로 다룰 수 있다.
+[`Box<dyn Shape>`](/glossary/#boxt-vs-rct-vs-arct)에서 `Box`가 필요한 이유: `dyn Shape`는 크기를 컴파일 타임에 알 수 없다(`Circle`과 `Rectangle`의 크기가 다르니까). `Box`로 힙에 올려야 포인터(고정 크기)로 다룰 수 있다.
 
-### 제네릭 vs `dyn Trait` — 언제 써야 하나?
+### 제네릭 vs [`dyn Trait`](/glossary/#impl-trait-vs-dyn-trait) — 언제 써야 하나?
 
 ```rust
 // 방법 1: 제네릭 (정적 디스패치, 컴파일 타임 결정)

@@ -135,7 +135,7 @@ fn main() {
 두 Mutex를 역순으로 lock하면 데드락이 발생합니다. `lock()`은 다른 스레드가 해제할 때까지 블로킹됩니다.
 :::
 
-### Arc&lt;Mutex&lt;T&gt;&gt; — 실전 패턴
+### [`Arc<Mutex<T>>`](/glossary/#boxt-vs-rct-vs-arct) — 실전 패턴
 
 여러 스레드가 같은 데이터를 변경해야 할 때:
 
@@ -180,7 +180,7 @@ console.log(counter); // 10 (but: 실제 멀티스레드였다면 race condition
 
 ## Send와 Sync 트레이트
 
-Rust가 데이터 레이스를 컴파일 타임에 막는 핵심 메커니즘입니다.
+Rust가 데이터 레이스를 컴파일 타임에 막는 핵심 메커니즘입니다. `Send`와 `Sync`는 [`Ownership`](/glossary/#메모리--소유권) 시스템의 연장선으로, 스레드 간 안전성을 컴파일러가 보장합니다.
 
 | 트레이트 | 의미 | 예시 |
 |----------|------|------|
