@@ -36,6 +36,13 @@
   --rts-hero-gradient:         radial-gradient(ellipse at 70% 40%, rgba(224, 90, 58, 0.1) 0%, transparent 60%);
 }
 
+/* ── 로고 ── */
+.site-title img {
+  height: 32px !important;
+  width: auto !important;
+  object-fit: contain;
+}
+
 /* ── 공통 폰트 ── */
 :root {
   --sl-font-system: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR',
