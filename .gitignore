@@ -158,6 +158,7 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/astro,macos,webstorm
 node_modules
 dist/
+src/lib/runnable-hashes.generated.json
 .claude/
 /ch0-intro.md
 /ch1-mental-model.md
