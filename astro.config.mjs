@@ -1,11 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import cloudflare from '@astrojs/cloudflare';
 import { runnableCodePlugin } from './src/expressive-code/runnable-plugin.mjs';
 
 // https://astro.build/config
 export default defineConfig({
 	output: 'static',
+	adapter: cloudflare(),
 	integrations: [
 		starlight({
 			title: 'Rust with TypeScript',
