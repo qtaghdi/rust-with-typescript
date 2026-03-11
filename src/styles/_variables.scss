@@ -27,6 +27,13 @@
   --rts-card-shadow:         rgba(224, 90, 58, 0.12);
   --rts-step-line:           #2c2218;
   --rts-hero-gradient:       radial-gradient(ellipse at 70% 40%, rgba(224, 90, 58, 0.1) 0%, transparent 60%);
+
+  // Boost text contrast for the darkened sidebar background
+  --sl-color-gray-1: #ede7e3;
+  --sl-color-gray-2: #c8bfbb;
+  --sl-color-gray-3: #9e9590;
+  --sl-color-text:   #ede7e3;
+  --sl-color-text-accent: #ff8262;
 }
 
 :root {
