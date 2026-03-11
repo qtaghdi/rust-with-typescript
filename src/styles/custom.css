@@ -36,11 +36,18 @@
   --rts-hero-gradient:         radial-gradient(ellipse at 70% 40%, rgba(224, 90, 58, 0.1) 0%, transparent 60%);
 }
 
-/* ── 로고 ── */
+/* ── 로고 & 사이트 타이틀 ── */
 .site-title img {
-  height: 32px !important;
+  height: 24px !important;
   width: auto !important;
   object-fit: contain;
+}
+
+.site-title span {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
 }
 
 /* ── 공통 폰트 ── */
