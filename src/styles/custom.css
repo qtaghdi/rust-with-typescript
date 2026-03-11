@@ -357,6 +357,11 @@
   font-weight: 600;
 }
 
+[data-theme='light'] .sidebar-content a[aria-current=page],
+[data-theme='light'] .sidebar-content [aria-current=page] {
+  color: var(--sl-color-accent-high) !important;
+}
+
 /* 사이드바 항목 호버 */
 .sidebar-content a:not([aria-current=page]):hover {
   color: var(--sl-color-accent);

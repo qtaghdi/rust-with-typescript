@@ -88,14 +88,16 @@ export default defineConfig({
 						{ label: 'Ch.7 — 컬렉션',              slug: 'ch7-collections' },
 						{ label: 'Ch.8 — 이터레이터 & 클로저', slug: 'ch8-iterators' },
 						{ label: 'Ch.9 — Trait 심화',           slug: 'ch9-traits' },
+						{ label: 'Ch.10 — 스마트 포인터',       slug: 'ch12-smart-pointers' },
+						{ label: 'Ch.11 — 동시성',              slug: 'ch13-concurrency' },
 					],
 				},
 				{
 					label: '실전 응용',
 					items: [
-						{ label: 'Ch.10 — 실전 예제',   slug: 'ch4-practical' },
-						{ label: 'Ch.11 — 테스트',      slug: 'ch11-testing' },
-						{ label: 'Ch.12 — 학습 로드맵', slug: 'ch5-roadmap' },
+						{ label: 'Ch.12 — 실전 예제',   slug: 'ch4-practical' },
+						{ label: 'Ch.13 — 테스트',      slug: 'ch11-testing' },
+						{ label: 'Ch.14 — 학습 로드맵', slug: 'ch5-roadmap' },
 					],
 				},
 				{
