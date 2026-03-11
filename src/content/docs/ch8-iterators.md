@@ -1,6 +1,6 @@
 ---
 title: "Ch.8 — Iterators & Closures"
-description: "Array method chaining vs Rust iterators — the power of zero-cost abstractions"
+description: ".map().filter().collect() chains that compile to the same assembly as a C for-loop — why Rust iterators are both ergonomic and zero-cost"
 ---
 
 If you enjoy writing `array.filter().map().reduce()` in TypeScript, Rust's iterators will feel very familiar. The syntax is a little different, but the concept is nearly identical. And thanks to **zero-cost abstractions**, Rust iterators never create intermediate arrays. Let's find out how that's possible.

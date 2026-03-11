@@ -1,6 +1,6 @@
 ---
 title: "Ch.7 — Collections"
-description: "Array/Map/String vs Vec/HashMap/String — A complete guide to Rust's collection types"
+description: "Vec, HashMap, String vs TypeScript Array/Map/string — how ownership interacts with collections, when to clone vs borrow"
 ---
 
 If you've worked freely with arrays, strings, and Maps in TypeScript, Rust has similar collection types. The behavior differs somewhat due to the ownership system, though. In this chapter, we compare Rust's three core collections from the perspective of a TypeScript developer.

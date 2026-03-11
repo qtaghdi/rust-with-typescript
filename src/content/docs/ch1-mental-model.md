@@ -1,6 +1,6 @@
 ---
 title: "Ch.2 — Mental Models"
-description: "The philosophical differences between TypeScript and Rust"
+description: "GC vs Ownership, compile-time safety vs runtime checks — the mental model shift every TypeScript developer needs before learning Rust syntax"
 ---
 
 When learning Rust, the first thing you need to change isn't the syntax. It's **how you think**.

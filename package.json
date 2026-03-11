@@ -3,14 +3,15 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node scripts/generate-hashes.mjs && astro dev",
     "start": "astro dev",
-    "build": "node scripts/generate-hashes.mjs && astro build",
+    "build": "node scripts/generate-og.mjs && node scripts/generate-hashes.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/cloudflare": "12",
+    "@astrojs/sitemap": "^3.7.1",
     "@astrojs/starlight": "^0.37.7",
     "astro": "^5.18.1",
     "expressive-code": "^0.41.7",

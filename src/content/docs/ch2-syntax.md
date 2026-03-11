@@ -1,6 +1,6 @@
 ---
 title: "Ch.3 — Syntax Basics"
-description: "Side-by-side comparison of variables, functions, types, async/await, and more"
+description: "Variables, functions, structs, traits, Option, Result, async/await — every core Rust concept mapped 1:1 to TypeScript equivalents with runnable examples"
 ---
 
 ## 2-1. Variables and Types

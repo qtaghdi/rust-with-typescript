@@ -1,6 +1,6 @@
 ---
 title: "Ch.4 — Ownership & Borrowing"
-description: "Rust's memory model and ownership system"
+description: "Stack vs heap, move semantics, borrow checker, lifetimes — why Rust's ownership rules exist and how they map to JavaScript's garbage collector"
 ---
 
 When first learning Rust, this is the part where most people get stuck. Many give up after battling the Borrow Checker. But these concepts aren't "Rust being weird" — they're a systematic approach to managing memory safely. Let's walk through it step by step.
