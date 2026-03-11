@@ -1,17 +1,17 @@
 ---
-title: "Ch.7 — 컬렉션"
-description: "Array/Map/String vs Vec/HashMap/String — Rust의 컬렉션 타입 완전 정복"
+title: "Ch.7 — Collections"
+description: "Array/Map/String vs Vec/HashMap/String — A complete guide to Rust's collection types"
 ---
 
-TypeScript에서 배열, 문자열, Map을 자유자재로 다뤘다면, Rust에서도 비슷한 컬렉션 타입들이 있습니다. 다만 소유권 시스템 때문에 동작 방식이 조금 다릅니다. 이 챕터에서는 TypeScript 개발자 눈높이에서 Rust의 세 가지 핵심 컬렉션을 비교해봅니다.
+If you've worked freely with arrays, strings, and Maps in TypeScript, Rust has similar collection types. The behavior differs somewhat due to the ownership system, though. In this chapter, we compare Rust's three core collections from the perspective of a TypeScript developer.
 
 ---
 
-## 1. `Vec<T>` — TypeScript Array와 비교
+## 1. `Vec<T>` — Compared to TypeScript Array
 
-`Vec<T>`는 TypeScript의 `Array<T>`와 가장 비슷한 타입입니다. 힙에 데이터를 저장하며, 크기를 동적으로 늘리거나 줄일 수 있습니다.
+`Vec<T>` is the type most similar to TypeScript's `Array<T>`. It stores data on the heap and can grow or shrink dynamically.
 
-### 생성
+### Creating
 
 ```typescript
 // TypeScript
@@ -22,68 +22,68 @@ const nums3 = Array.from({ length: 5 }, (_, i) => i * 2); // [0, 2, 4, 6, 8]
 
 ```rust
 // Rust
-let nums: Vec<i32> = Vec::new();       // 빈 벡터
-let nums2 = vec![1, 2, 3];             // vec! 매크로로 초기화
+let nums: Vec<i32> = Vec::new();       // empty vector
+let nums2 = vec![1, 2, 3];             // initialize with the vec! macro
 let nums3: Vec<i32> = (0..5).map(|i| i * 2).collect(); // [0, 2, 4, 6, 8]
 ```
 
-`vec![]` 매크로는 TypeScript의 배열 리터럴 `[]`과 똑같이 편합니다. `Vec::new()`는 빈 벡터를 만들고, 나중에 타입을 추론할 수 없는 상황에서 타입 어노테이션이 필요합니다.
+The `vec![]` macro is just as convenient as TypeScript's array literal `[]`. `Vec::new()` creates an empty vector; a type annotation is required when the type cannot be inferred later.
 
-### 추가 / 삭제
+### Adding / Removing
 
 ```typescript
 // TypeScript
 const arr = [1, 2, 3];
-arr.push(4);          // 끝에 추가
-arr.pop();            // 끝에서 제거
-arr.splice(1, 1);     // 인덱스 1에서 1개 제거
+arr.push(4);          // add to end
+arr.pop();            // remove from end
+arr.splice(1, 1);     // remove 1 element at index 1
 ```
 
 ```rust
 // Rust
 let mut arr = vec![1, 2, 3];
-arr.push(4);          // 끝에 추가
-arr.pop();            // 끝에서 제거 → Option<T> 반환
-arr.remove(1);        // 인덱스 1의 요소 제거 (나머지가 왼쪽으로 이동)
+arr.push(4);          // add to end
+arr.pop();            // remove from end → returns Option<T>
+arr.remove(1);        // remove element at index 1 (remaining elements shift left)
 ```
 
-Rust에서 `pop()`은 `Option<T>`를 반환합니다. 벡터가 비어 있으면 `None`, 값이 있으면 `Some(값)`을 돌려줍니다. TypeScript처럼 `undefined`가 그냥 나오는 게 아니라, 명시적으로 처리해야 합니다.
+In Rust, `pop()` returns `Option<T>`. If the vector is empty it returns `None`; if there's a value it returns `Some(value)`. Unlike TypeScript where `undefined` simply comes out, you must handle it explicitly.
 
 ```rust
 let mut arr = vec![1, 2, 3];
 if let Some(last) = arr.pop() {
-    println!("꺼낸 값: {}", last);
+    println!("popped value: {}", last);
 }
 ```
 
-또한 `Vec`을 수정하려면 반드시 `mut`를 붙여야 합니다. TypeScript에서 `const arr = []`로 선언해도 `arr.push()`가 가능한 것과 다릅니다.
+Also, you must attach `mut` to modify a `Vec`. This is different from TypeScript where `const arr = []` still allows `arr.push()`.
 
-### 읽기 — 인덱싱 vs `.get()`
+### Reading — Indexing vs `.get()`
 
 ```typescript
 // TypeScript
 const arr = [10, 20, 30];
 console.log(arr[1]);    // 20
-console.log(arr[99]);   // undefined (런타임 에러 없음)
+console.log(arr[99]);   // undefined (no runtime error)
 ```
 
 ```rust
 // Rust
 let arr = vec![10, 20, 30];
 
-// 방법 1: 직접 인덱싱 — 범위 초과 시 패닉(panic) 발생!
+// Method 1: direct indexing — panics if out of bounds!
 println!("{}", arr[1]);   // 20
 
-// 방법 2: .get() — Option<&T> 반환, 안전함
+// Method 2: .get() — returns Option<&T>, safe
 match arr.get(99) {
-    Some(val) => println!("값: {}", val),
-    None      => println!("범위를 벗어났습니다"),
+    Some(val) => println!("value: {}", val),
+    None      => println!("out of bounds"),
 }
 ```
 
-TypeScript는 범위를 벗어난 인덱스에 접근하면 `undefined`를 반환하지만, Rust에서 `arr[99]`처럼 직접 인덱싱하면 프로그램이 패닉을 일으키며 종료됩니다. 안전하게 접근하려면 `.get()`을 써서 `Option`으로 처리하세요.
+TypeScript returns `undefined` when accessing an out-of-bounds index, but in Rust, direct indexing like `arr[99]` causes the program to panic and terminate. Use `.get()` to access safely via `Option`.
 
-### 이터레이션
+### Iteration
 
 ```typescript
 // TypeScript
@@ -96,21 +96,21 @@ const doubled = arr.map(x => x * 2);
 // Rust
 let arr = vec![1, 2, 3];
 
-// for 루프
+// for loop
 for x in &arr {
     println!("{}", x);
 }
 
-// 이터레이터 체이닝
+// iterator chaining
 let doubled: Vec<i32> = arr.iter().map(|x| x * 2).collect();
 ```
 
-`&arr`로 순회하면 벡터의 소유권이 이동하지 않습니다. 만약 `for x in arr`처럼 참조 없이 쓰면, 루프가 끝난 뒤 `arr`는 더 이상 사용할 수 없습니다(소유권이 루프로 이동). 대부분의 경우 `&arr` 또는 `.iter()`를 사용하세요.
+Iterating with `&arr` does not move ownership of the vector. If you write `for x in arr` without a reference, `arr` can no longer be used after the loop ends (ownership moves into the loop). In most cases use `&arr` or `.iter()`.
 
 ```rust
 let arr = vec![1, 2, 3];
 
-// 값을 수정하면서 순회
+// iterate while modifying values
 let mut arr2 = vec![1, 2, 3];
 for x in &mut arr2 {
     *x *= 2;
@@ -118,74 +118,74 @@ for x in &mut arr2 {
 // arr2 == [2, 4, 6]
 ```
 
-### 슬라이스 `&[T]` — TypeScript에는 없는 개념
+### Slices `&[T]` — A Concept TypeScript Doesn't Have
 
-Rust에는 `&[T]`라는 슬라이스 타입이 있습니다. 벡터나 배열의 일부를 복사 없이 빌려오는 방법입니다.
+Rust has a slice type `&[T]`. It's a way to borrow part of a vector or array without copying.
 
 ```rust
 let arr = vec![1, 2, 3, 4, 5];
 
-// 슬라이스: 인덱스 1~3 (3은 미포함)
+// slice: indices 1 to 3 (3 not included)
 let slice: &[i32] = &arr[1..3]; // [2, 3]
 
-// 함수에 Vec 대신 슬라이스를 받으면 더 유연함
+// accepting a slice instead of a Vec makes functions more flexible
 fn sum(slice: &[i32]) -> i32 {
     slice.iter().sum()
 }
 
-sum(&arr);           // Vec 전체 전달
-sum(&arr[1..3]);     // 일부만 전달
+sum(&arr);           // pass the whole Vec
+sum(&arr[1..3]);     // pass only a portion
 ```
 
-TypeScript에서 `Array.prototype.slice()`는 새 배열을 복사해서 반환하지만, Rust의 `&[T]`는 복사 없이 원본 데이터를 참조합니다. 메모리 효율이 훨씬 좋습니다.
+TypeScript's `Array.prototype.slice()` copies and returns a new array, but Rust's `&[T]` references the original data without copying. This is far more memory-efficient.
 
 ---
 
-## 2. `String` — TypeScript string과의 차이
+## 2. `String` — Differences from TypeScript string
 
-Rust의 문자열은 TypeScript보다 복잡합니다. 핵심은 두 가지 타입이 있다는 것입니다.
+Rust strings are more complex than TypeScript's. The key is that there are two types.
 
-| 타입 | 특징 |
-|------|------|
-| `&str` | 문자열 슬라이스 (불변 참조, 주로 리터럴) |
-| `String` | 힙에 저장된 소유 문자열 (가변 가능) |
+| Type | Characteristics |
+|------|-----------------|
+| `&str` | String slice (immutable reference, typically a literal) |
+| `String` | Owned string stored on the heap (can be mutable) |
 
 ### `&str` vs `String`
 
 ```typescript
-// TypeScript — 문자열은 항상 불변 값 타입
-const greeting: string = "안녕하세요";
+// TypeScript — strings are always immutable value types
+const greeting: string = "Hello";
 let mutable = "Hello";
-mutable = mutable + " World"; // 새 문자열 생성
+mutable = mutable + " World"; // creates a new string
 ```
 
 ```rust
 // Rust
-let literal: &str = "안녕하세요";        // 문자열 슬라이스 (프로그램 바이너리에 저장)
-let owned: String = String::from("안녕하세요"); // 힙에 저장된 소유 문자열
-let owned2 = "안녕하세요".to_string();   // 동일한 결과
+let literal: &str = "Hello";                           // string slice (stored in the program binary)
+let owned: String = String::from("Hello");             // owned string stored on the heap
+let owned2 = "Hello".to_string();                      // same result
 ```
 
-함수 파라미터로 문자열을 받을 때는 `&str`을 쓰는 게 관례입니다. `&str`은 `String`의 슬라이스도 받을 수 있어 더 유연합니다.
+When accepting a string as a function parameter, using `&str` is conventional. `&str` is more flexible because it can accept both string slices and references to `String`.
 
 ```rust
-// &str을 받으면 String과 &str 모두 전달 가능
+// accepting &str allows both String and &str to be passed
 fn greet(name: &str) {
-    println!("안녕하세요, {}!", name);
+    println!("Hello, {}!", name);
 }
 
-greet("철수");                      // &str 직접 전달
-greet(&String::from("영희"));       // String의 참조 전달
+greet("Alice");                      // pass &str directly
+greet(&String::from("Bob"));         // pass a reference to String
 ```
 
-### 문자열 생성 및 연결
+### Creating and Concatenating Strings
 
 ```typescript
 // TypeScript
 const s1 = "Hello";
 const s2 = " World";
 const s3 = s1 + s2;                  // "Hello World"
-const s4 = `${s1}, ${s2}!`;          // 템플릿 리터럴
+const s4 = `${s1}, ${s2}!`;          // template literal
 ```
 
 ```rust
@@ -193,65 +193,65 @@ const s4 = `${s1}, ${s2}!`;          // 템플릿 리터럴
 let s1 = String::from("Hello");
 let s2 = String::from(" World");
 
-// + 연산자: s1의 소유권이 이동함에 주의!
-let s3 = s1 + &s2;  // s1은 이후 사용 불가
+// + operator: note that ownership of s1 is moved!
+let s3 = s1 + &s2;  // s1 can no longer be used afterward
 
-// format! 매크로: 소유권 이동 없이 편리하게 연결
+// format! macro: convenient concatenation without moving ownership
 let s4 = String::from("Hello");
-let s5 = format!("{}, {}!", s4, s2); // s4, s2 모두 이후에도 사용 가능
+let s5 = format!("{}, {}!", s4, s2); // both s4 and s2 can still be used afterward
 ```
 
-`+` 연산자를 쓸 때 주의하세요. 왼쪽 피연산자(`s1`)의 소유권이 이동합니다. 여러 문자열을 조합할 때는 `format!` 매크로가 훨씬 편하고 안전합니다.
+Be careful with the `+` operator — ownership of the left operand (`s1`) is moved. When combining multiple strings, the `format!` macro is far more convenient and safe.
 
-### UTF-8 인덱싱이 안 되는 이유
+### Why UTF-8 Indexing Is Not Allowed
 
-TypeScript의 문자열은 UTF-16으로 인코딩되고, Rust의 `String`은 UTF-8로 인코딩됩니다. 때문에 Rust에서는 바이트 인덱스로 문자를 직접 가져올 수 없습니다.
+TypeScript strings are encoded in UTF-16, while Rust's `String` is encoded in UTF-8. Because of this, you cannot directly retrieve a character in Rust using a byte index.
 
 ```typescript
-// TypeScript — 인덱싱 가능
-const s = "한글";
-console.log(s[0]); // "한"
+// TypeScript — indexing is allowed
+const s = "hello";
+console.log(s[0]); // "h"
 ```
 
 ```rust
-// Rust — 인덱스 접근 불가 (컴파일 에러)
-let s = String::from("한글");
-// let c = s[0]; // 에러! String은 인덱싱 불가
+// Rust — index access not allowed (compile error)
+let s = String::from("hello");
+// let c = s[0]; // error! String cannot be indexed
 
-// 이유: "한" 한 글자가 UTF-8로 3바이트를 차지함
-// s[0]이 첫 번째 바이트인지 첫 번째 문자인지 모호함
+// Reason: some Unicode characters occupy multiple bytes in UTF-8
+// s[0] is ambiguous: is it the first byte or the first character?
 ```
 
-왜 그럴까요? "한"은 UTF-8로 인코딩하면 `0xED 0xB5 0x9C` 세 바이트를 차지합니다. 만약 `s[0]`을 허용한다면 바이트를 반환할지, 문자를 반환할지 불명확합니다. Rust는 이 모호함을 컴파일 에러로 차단합니다.
+Why? The character "é", for example, occupies 2 bytes in UTF-8 encoding. If `s[0]` were allowed, it would be unclear whether a byte or a character should be returned. Rust blocks this ambiguity with a compile error.
 
-### `chars()` / `bytes()` 이터레이션
+### `chars()` / `bytes()` Iteration
 
 ```rust
-let s = String::from("안녕Rust");
+let s = String::from("Hello Rust");
 
-// 유니코드 문자 단위로 순회
+// iterate character by character (Unicode)
 for c in s.chars() {
-    print!("{} ", c); // 안 녕 R u s t
+    print!("{} ", c); // H e l l o   R u s t
 }
 
-// 바이트 단위로 순회
+// iterate byte by byte
 for b in s.bytes() {
-    print!("{} ", b); // 각 바이트의 숫자 값
+    print!("{} ", b); // numeric value of each byte
 }
 
-// n번째 문자 가져오기
-let third = s.chars().nth(2); // Some('R')
+// get the nth character
+let third = s.chars().nth(2); // Some('l')
 ```
 
-문자 단위 처리가 필요하면 `.chars()`, 바이너리 처리가 필요하면 `.bytes()`를 쓰세요. TypeScript처럼 `[n]`으로 바로 접근하는 것보다 명시적이지만, 의도가 훨씬 명확합니다.
+Use `.chars()` when you need character-level processing, and `.bytes()` when you need binary processing. It's more explicit than TypeScript's `[n]` direct access, but the intent is much clearer.
 
 ---
 
-## 3. HashMap\<K, V\> — TypeScript Map/Record와 비교
+## 3. HashMap\<K, V\> — Compared to TypeScript Map/Record
 
-`HashMap<K, V>`는 TypeScript의 `Map<K, V>` 또는 `Record<string, V>`와 대응되는 타입입니다.
+`HashMap<K, V>` corresponds to TypeScript's `Map<K, V>` or `Record<string, V>`.
 
-### 생성 및 삽입
+### Creating and Inserting
 
 ```typescript
 // TypeScript
@@ -270,15 +270,15 @@ let mut map: HashMap<String, i32> = HashMap::new();
 map.insert(String::from("apple"), 3);
 map.insert(String::from("banana"), 5);
 
-// 초기값과 함께 생성
+// create with initial values
 let map2: HashMap<&str, i32> = [("apple", 3), ("banana", 5)]
     .into_iter()
     .collect();
 ```
 
-`HashMap`은 표준 라이브러리에 있지만 `use`로 가져와야 합니다. `Vec`이나 `String`과 달리 자동으로 스코프에 포함되지 않습니다.
+`HashMap` is in the standard library but must be brought in with `use`. Unlike `Vec` or `String`, it is not automatically in scope.
 
-### 값 읽기 — `get()` → `Option<&V>`
+### Reading Values — `get()` → `Option<&V>`
 
 ```typescript
 // TypeScript
@@ -294,23 +294,23 @@ if (count !== undefined) {
 let mut map = HashMap::new();
 map.insert("apple", 3);
 
-// .get()은 Option<&V>를 반환
+// .get() returns Option<&V>
 match map.get("apple") {
-    Some(count) => println!("개수: {}", count),
-    None        => println!("없는 키입니다"),
+    Some(count) => println!("count: {}", count),
+    None        => println!("key not found"),
 }
 
-// 또는 간단하게
+// or more concisely
 if let Some(count) = map.get("apple") {
-    println!("개수: {}", count);
+    println!("count: {}", count);
 }
 ```
 
-TypeScript의 `map.get()`은 `T | undefined`를 반환하고, Rust는 `Option<&V>`를 반환합니다. 개념은 같지만, Rust에서는 명시적으로 패턴 매칭이나 `if let`으로 처리해야 합니다.
+TypeScript's `map.get()` returns `T | undefined`, while Rust returns `Option<&V>`. The concept is the same, but in Rust you must handle it explicitly with pattern matching or `if let`.
 
-### entry API — TypeScript의 `||=` 대응
+### The entry API — Equivalent to TypeScript's `||=`
 
-TypeScript에서 "없으면 기본값 설정, 있으면 업데이트" 패턴은 이렇게 씁니다.
+In TypeScript, the "set a default if absent, update if present" pattern looks like this:
 
 ```typescript
 // TypeScript
@@ -318,35 +318,35 @@ const counter = new Map<string, number>();
 const word = "hello";
 counter.set(word, (counter.get(word) ?? 0) + 1);
 
-// 또는 ||= (논리 할당 연산자)
+// or with ||= (logical assignment operator)
 counter.set(word, (counter.get(word) || 0) + 1);
 ```
 
-Rust에서는 `entry` API가 이 역할을 훨씬 우아하게 처리합니다.
+In Rust, the `entry` API handles this pattern much more elegantly.
 
 ```rust
 // Rust
 let mut counter: HashMap<String, i32> = HashMap::new();
 let word = String::from("hello");
 
-// entry: 키가 없으면 삽입, 있으면 그 값을 가져옴
+// entry: inserts if key is absent, returns the value if present
 counter.entry(word).or_insert(0);
 
-// 더 관용적인 패턴: 값을 바로 수정
+// more idiomatic pattern: modify the value in place
 let mut counter: HashMap<&str, i32> = HashMap::new();
 let text = "hello world hello rust hello";
 for word in text.split_whitespace() {
     let count = counter.entry(word).or_insert(0);
-    *count += 1; // 역참조로 값 수정
+    *count += 1; // dereference to modify the value
 }
 // {"hello": 3, "world": 1, "rust": 1}
 ```
 
-`entry().or_insert(0)`은 키가 없으면 0을 삽입하고, 있으면 기존 값의 가변 참조를 반환합니다.
+`entry().or_insert(0)` inserts 0 if the key is absent, and returns a mutable reference to the existing value if it is present.
 
-`*count += 1`로 역참조해서 값을 직접 수정할 수 있습니다.
+`*count += 1` dereferences the reference to modify the value directly.
 
-### 이터레이션
+### Iteration
 
 ```typescript
 // TypeScript
@@ -367,54 +367,53 @@ for (key, value) in &map {
     println!("{}: {}", key, value);
 }
 
-// 키만 순회
+// iterate over keys only
 for key in map.keys() { println!("{}", key); }
 
-// 값만 순회
+// iterate over values only
 for val in map.values() { println!("{}", val); }
 ```
 
-순회 순서는 TypeScript의 `Map`과 달리 삽입 순서가 보장되지 않습니다. 
-순서가 필요하다면 `BTreeMap`을 사용하세요.
+Unlike TypeScript's `Map`, iteration order is not guaranteed to follow insertion order. If you need ordering, use `BTreeMap`.
 
-### 소유권과 HashMap
+### Ownership and HashMap
 
-HashMap에 값을 넣으면 소유권이 이동합니다. 이 점은 TypeScript와 크게 다릅니다.
+Inserting a value into a HashMap moves ownership. This is a significant difference from TypeScript.
 
 ```rust
 let key = String::from("color");
 let value = String::from("blue");
 
 let mut map = HashMap::new();
-map.insert(key, value); // key와 value의 소유권이 map으로 이동
+map.insert(key, value); // ownership of key and value moves into map
 
-// 이후 key, value 사용 불가!
-// println!("{}", key); // 컴파일 에러
+// key and value can no longer be used!
+// println!("{}", key); // compile error
 ```
 
-복사 가능한 타입(`i32`, `bool` 등)은 소유권이 이동하지 않고 복사됩니다. `String` 같은 힙 타입은 소유권이 이동하므로, 원본을 유지하려면 `.clone()`을 사용하거나 `&str`을 키로 쓰세요.
+Copy types (`i32`, `bool`, etc.) are copied rather than moved. For heap types like `String`, ownership is moved, so if you want to keep the original, use `.clone()` or use `&str` as the key.
 
 ```rust
 let key = String::from("color");
 let mut map = HashMap::new();
-map.insert(key.clone(), "blue"); // clone으로 복사해서 삽입
-println!("{}", key);              // key는 여전히 유효
+map.insert(key.clone(), "blue"); // clone and insert a copy
+println!("{}", key);              // key is still valid
 ```
 
 ---
 
-## 4. 실전 예제: 단어 빈도수 세기
+## 4. Practical Example: Counting Word Frequencies
 
-TypeScript와 Rust로 동일한 기능을 구현해봅시다. 문장에서 각 단어가 몇 번 등장하는지 셉니다.
+Let's implement the same functionality in both TypeScript and Rust: counting how many times each word appears in a sentence.
 
-### TypeScript 구현
+### TypeScript Implementation
 
 ```typescript
 function countWords(text: string): Map<string, number> {
     const counter = new Map<string, number>();
 
     for (const word of text.split(/\s+/)) {
-        const trimmed = word.toLowerCase().replace(/[^a-z가-힣]/g, "");
+        const trimmed = word.toLowerCase().replace(/[^a-z]/g, "");
         if (trimmed.length === 0) continue;
         counter.set(trimmed, (counter.get(trimmed) ?? 0) + 1);
     }
@@ -422,21 +421,22 @@ function countWords(text: string): Map<string, number> {
     return counter;
 }
 
-const text = "Rust는 빠르다 Rust는 안전하다 Rust는 재밌다";
+const text = "Rust is fast Rust is safe Rust is fun";
 const result = countWords(text);
 
-// 빈도수 내림차순 정렬
+// sort by frequency descending
 const sorted = [...result.entries()].sort((a, b) => b[1] - a[1]);
 for (const [word, count] of sorted) {
     console.log(`${word}: ${count}`);
 }
-// rust는: 3
-// 빠르다: 1
-// 안전하다: 1
-// 재밌다: 1
+// rust: 3
+// is: 3
+// fast: 1
+// safe: 1
+// fun: 1
 ```
 
-### Rust 구현
+### Rust Implementation
 
 ```rust
 use std::collections::HashMap;
@@ -449,7 +449,7 @@ fn count_words(text: &str) -> HashMap<String, u32> {
         if trimmed.is_empty() {
             continue;
         }
-        // entry API로 간결하게 카운트
+        // count concisely with the entry API
         let count = counter.entry(trimmed).or_insert(0);
         *count += 1;
     }
@@ -458,55 +458,55 @@ fn count_words(text: &str) -> HashMap<String, u32> {
 }
 
 fn main() {
-    let text = "Rust는 빠르다 Rust는 안전하다 Rust는 재밌다";
+    let text = "Rust is fast Rust is safe Rust is fun";
     let result = count_words(text);
 
-    // 빈도수 내림차순 정렬
+    // sort by frequency descending
     let mut pairs: Vec<(&String, &u32)> = result.iter().collect();
     pairs.sort_by(|a, b| b.1.cmp(a.1));
 
     for (word, count) in pairs {
         println!("{}: {}", word, count);
     }
-    // rust는: 3
-    // 빠르다: 1
-    // 안전하다: 1
-    // 재밌다: 1
+    // rust: 3
+    // is: 3
+    // fast: 1
+    // safe: 1
+    // fun: 1
 }
 ```
 
-### 두 구현의 핵심 차이점
+### Key Differences Between the Two Implementations
 
-| 비교 항목 | TypeScript | Rust |
-|-----------|-----------|------|
-| 없는 키 처리 | `?? 0` 또는 `\|\|=` | `entry().or_insert(0)` |
-| 가변성 선언 | `const`도 가변 | `mut` 명시 필요 |
-| 정렬 | `Array.sort()` | `Vec::sort_by()` |
-| 반환 타입 | `Map<string, number>` | `HashMap<String, u32>` |
-| 메모리 | GC가 자동 관리 | 스코프 벗어나면 자동 해제 |
+| Comparison | TypeScript | Rust |
+|------------|-----------|------|
+| Handling absent keys | `?? 0` or `\|\|=` | `entry().or_insert(0)` |
+| Declaring mutability | `const` is still mutable | `mut` must be explicit |
+| Sorting | `Array.sort()` | `Vec::sort_by()` |
+| Return type | `Map<string, number>` | `HashMap<String, u32>` |
+| Memory | Managed by GC automatically | Freed automatically when out of scope |
 
-Rust 코드에서 `count_words` 함수는 `&str`을 받아 소유권 이동 없이 텍스트를 처리하고, 내부에서 만든 `HashMap`의 소유권을 반환합니다. 호출자가 반환된 `HashMap`을 소유하게 되며, 더 이상 필요 없어지면 자동으로 메모리가 해제됩니다.
+In the Rust code, the `count_words` function accepts `&str` to process text without moving ownership, and returns ownership of the `HashMap` it creates internally. The caller takes ownership of the returned `HashMap`, and its memory is automatically freed when it's no longer needed.
 
 ---
 
-## 정리
+## Summary
 
 | | TypeScript | Rust |
 |---|---|---|
-| 동적 배열 | `Array<T>` | `Vec<T>` |
-| 문자열 (리터럴) | `string` | `&str` |
-| 문자열 (소유) | `string` | `String` |
-| 키-값 저장소 | `Map<K, V>` | `HashMap<K, V>` |
+| Dynamic array | `Array<T>` | `Vec<T>` |
+| String (literal) | `string` | `&str` |
+| String (owned) | `string` | `String` |
+| Key-value store | `Map<K, V>` | `HashMap<K, V>` |
 
-Rust 컬렉션을 쓸 때 기억할 세 가지:
+Three things to remember when using Rust collections:
 
-1. **수정하려면 `mut`**: TypeScript의 `const`와 달리, Rust의 변수는 기본이 불변입니다.
-2. **인덱싱 대신 `.get()`**: 안전한 접근을 위해 `Option`을 반환하는 메서드를 선호하세요.
-3. **소유권 주의**: `HashMap`이나 `Vec`에 `String`을 넣으면 소유권이 이동합니다. 원본을 유지하려면 `.clone()` 또는 참조(`&`)를 활용하세요.
+1. **`mut` to modify**: Unlike TypeScript's `const`, variables in Rust are immutable by default.
+2. **`.get()` instead of indexing**: Prefer methods that return `Option` for safe access.
+3. **Watch ownership**: Inserting a `String` into a `HashMap` or `Vec` moves ownership. Use `.clone()` or references (`&`) to keep the original.
 
 ---
 
-## 챕터 연결
+## Chapter Navigation
 
-이전 챕터에서 enum과 match를 익혔다면, 이제 컬렉션에서 그 개념이 어떻게 쓰이는지 본 것이다.
-다음 챕터에서는 trait 시스템으로 확장한다.
+Now that you've seen enum and match from the previous chapter, you've seen how those concepts are used with collections. The next chapter expands into the trait system.

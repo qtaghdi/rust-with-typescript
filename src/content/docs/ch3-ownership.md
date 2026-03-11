@@ -1,190 +1,190 @@
 ---
 title: "Ch.4 — Ownership & Borrowing"
-description: "Rust의 메모리 모델과 소유권 시스템"
+description: "Rust's memory model and ownership system"
 ---
 
-Rust를 처음 배울 때 가장 많이 막히는 부분이 바로 여기입니다. Borrow Checker와 싸우다 포기하는 분들도 많습니다. 하지만 이 개념들은 "Rust가 이상한 것"이 아니라 "메모리를 안전하게 관리하는 체계적인 방법"입니다. 차근차근 살펴봅시다.
+When first learning Rust, this is the part where most people get stuck. Many give up after battling the Borrow Checker. But these concepts aren't "Rust being weird" — they're a systematic approach to managing memory safely. Let's walk through it step by step.
 
 ---
 
-## 3-1. 메모리 기초: 스택, 힙, 그리고 GC
+## 3-1. Memory Basics: Stack, Heap, and GC
 
-Rust의 Ownership을 이해하려면 먼저 메모리가 어떻게 작동하는지 알아야 합니다. JavaScript 개발자 입장에서 직접 몰라도 되는 개념이었지만, 여기서 한 번 짚고 가겠습니다.
+To understand Rust's Ownership, you first need to understand how memory works. As a JavaScript developer, this may be something you've never had to think about directly — but let's cover it here.
 
-### 스택 (Stack): 빠르고 예측 가능한 메모리
+### Stack: Fast and Predictable Memory
 
-스택은 **책 더미**와 같습니다. 책을 위에서 쌓고(push), 위에서 꺼냅니다(pop). 순서가 명확합니다.
+The stack is like a **pile of books**. You add books on top (push) and take from the top (pop). The order is clear.
 
 ```
-함수 호출 시:
+On function call:
 ┌─────────────────┐
-│   add(3, 5)     │  ← 가장 위: 현재 실행 중인 함수
+│   add(3, 5)     │  ← top: currently executing function
 │   main()        │
 └─────────────────┘
 
-add() 완료 시:
+When add() finishes:
 ┌─────────────────┐
-│   main()        │  ← add()가 스택에서 제거됨
+│   main()        │  ← add() has been removed from the stack
 └─────────────────┘
 ```
 
-- 크기를 **컴파일 타임에 알아야** 합니다
-- 매우 빠릅니다 (CPU 캐시 친화적)
-- 함수가 끝나면 자동으로 메모리 해제
-- `i32`, `f64`, `bool` 같은 기본 타입은 스택에 저장
+- Size must be known at **compile time**
+- Very fast (CPU cache-friendly)
+- Memory is automatically freed when a function returns
+- Primitive types like `i32`, `f64`, `bool` are stored on the stack
 
-### 힙 (Heap): 유연하지만 관리가 필요한 메모리
+### Heap: Flexible but Requires Management
 
-힙은 **커다란 창고**와 같습니다. 필요할 때 공간을 빌리고(allocate), 다 쓰면 반납해야(free) 합니다.
+The heap is like a **large warehouse**. You borrow space when you need it (allocate), and must return it when you're done (free).
 
 ```
-힙 메모리:
+Heap memory:
 ┌────────────────────────────────────┐
-│  [사용 중: String "hello"]         │
-│  [비어 있음]                        │
-│  [사용 중: Vec<User> ...]          │
-│  [비어 있음]                        │
+│  [In use: String "hello"]          │
+│  [Empty]                           │
+│  [In use: Vec<User> ...]           │
+│  [Empty]                           │
 └────────────────────────────────────┘
 ```
 
-- 크기를 런타임에 결정할 수 있습니다
-- 스택보다 느립니다 (메모리 할당 비용)
-- `String`, `Vec<T>`, `Box<T>` 같은 동적 크기 타입은 힙에 저장
-- **반납하지 않으면 메모리 누수 (leak)**
+- Size can be determined at runtime
+- Slower than the stack (allocation overhead)
+- Dynamically-sized types like `String`, `Vec<T>`, `Box<T>` are stored on the heap
+- **If not freed, memory leaks**
 
-### JavaScript/TypeScript: GC가 창고 관리인
+### JavaScript/TypeScript: GC as the Warehouse Manager
 
-JavaScript에서는 직접 메모리를 반납하지 않아도 됩니다. **Garbage Collector(GC)** 가 주기적으로 돌면서 "더 이상 아무도 참조하지 않는" 메모리를 자동으로 회수합니다.
-
-```
-GC 없는 세계 (C/C++):
-  창고를 빌림 → 작업 → 직접 반납
-  반납 까먹으면? → 메모리 누수
-  이미 반납한 공간 또 쓰면? → 버그 (use-after-free)
-
-GC 있는 세계 (JavaScript):
-  창고를 빌림 → 작업 → 그냥 두면 됨
-  GC가 주기적으로 청소 → 편리하지만...
-  청소할 때 잠깐 멈춤 (GC pause)
-  청소 시점 예측 불가
-```
-
-### Rust: 컴파일러가 창고 관리인
-
-Rust는 GC도 없고 수동 메모리 관리도 없습니다. 대신 **컴파일러가 Ownership 규칙을 검사**하여, 각 메모리가 언제 해제되어야 하는지 빌드 타임에 결정합니다.
+In JavaScript, you don't have to manually free memory. The **Garbage Collector (GC)** periodically scans and automatically reclaims memory that "no one references anymore."
 
 ```
-Ownership 세계 (Rust):
-  창고를 빌림 → 소유자가 생김
-  소유자가 스코프를 벗어나면 → 자동으로 반납 (drop)
-  컴파일러가 이 모든 걸 검사
-  GC pause 없음, 메모리 누수 없음
+World without GC (C/C++):
+  Borrow warehouse → do work → manually return
+  Forget to return? → memory leak
+  Use already-returned space again? → bug (use-after-free)
+
+World with GC (JavaScript):
+  Borrow warehouse → do work → just leave it
+  GC periodically cleans up → convenient, but...
+  Brief pause during cleanup (GC pause)
+  Cleanup timing is unpredictable
+```
+
+### Rust: Compiler as the Warehouse Manager
+
+Rust has neither GC nor manual memory management. Instead, the **compiler checks Ownership rules** and determines at build time when each piece of memory should be freed.
+
+```
+Ownership world (Rust):
+  Borrow warehouse → an owner is assigned
+  When the owner goes out of scope → automatically returned (drop)
+  Compiler checks all of this
+  No GC pause, no memory leaks
 ```
 
 ```rust
 fn main() {
-    let s = String::from("hello"); // 힙에 "hello" 할당, s가 소유자
+    let s = String::from("hello"); // allocate "hello" on heap, s is the owner
     println!("{}", s);
-    // main()이 끝나면 s가 스코프를 벗어남 → drop() 자동 호출 → 메모리 해제
+    // when main() ends, s goes out of scope → drop() is called automatically → memory freed
 }
 ```
 
 ---
 
-## 3-2. Ownership의 3가지 규칙
+## 3-2. The 3 Rules of Ownership
 
-Rust의 [Ownership](/glossary/#메모리--소유권) 시스템은 딱 세 가지 규칙으로 이루어집니다.
+Rust's [Ownership](/glossary/#메모리--소유권) system is built on exactly three rules.
 
-### 규칙 1: 모든 값은 소유자(owner)가 있다
+### Rule 1: Every value has an owner
 
 ```rust
-let s = String::from("hello"); // s가 "hello"의 소유자
+let s = String::from("hello"); // s is the owner of "hello"
 ```
 
-### 규칙 2: 소유자는 동시에 하나만 존재한다
+### Rule 2: There can only be one owner at a time
 
 ```typescript
-// TypeScript — 복사가 자유로움
+// TypeScript — copying is free
 let a = "hello";
-let b = a;       // a와 b 모두 "hello"를 가리킴
+let b = a;       // both a and b point to "hello"
 console.log(a);  // OK
 console.log(b);  // OK
 ```
 
 ```rust
-// Rust — 소유권 이전(move)
+// Rust — ownership is transferred (move)
 let a = String::from("hello");
-let b = a;       // "hello"의 소유권이 a에서 b로 이전됨
-// println!("{}", a); // 컴파일 에러! a는 더 이상 소유자가 아님
+let b = a;       // ownership of "hello" is moved from a to b
+// println!("{}", a); // compile error! a is no longer the owner
 println!("{}", b);   // OK
 ```
 
-"JS에서는 되는데 Rust에서는 왜 안 되지?"의 첫 번째 사례입니다.
+This is the first case of "it works in JS but not in Rust."
 
-Rust에서 `let b = a;`는 단순 복사가 아닙니다. 힙에 있는 값의 **소유권이 a에서 b로 이동**합니다. 이후 a는 유효하지 않습니다.
+In Rust, `let b = a;` is not a simple copy. The **ownership of the heap value moves from a to b**. After that, a is no longer valid.
 
-> 왜 이렇게 할까요? a와 b 둘 다 같은 힙 메모리를 가리킨다면, 둘 다 스코프를 벗어날 때 같은 메모리를 두 번 해제하는 **double free** 버그가 생깁니다. Rust는 이를 소유자가 하나라는 규칙으로 원천 차단합니다.
+> Why does this happen? If both a and b pointed to the same heap memory, they would both try to free the same memory when going out of scope — a **double free** bug. Rust eliminates this at the root by enforcing single ownership.
 
-스택에 저장되는 기본 타입(`i32`, `f64`, `bool`, `char`)은 복사가 저렴하므로 Move 대신 **[Copy](/glossary/#clone-vs-copy)**가 일어납니다.
+Primitive types stored on the stack (`i32`, `f64`, `bool`, `char`) are cheap to copy, so **[Copy](/glossary/#clone-vs-copy)** happens instead of Move.
 
 ```rust
 let x: i32 = 5;
-let y = x;       // i32는 Copy — x도 y도 유효
+let y = x;       // i32 is Copy — both x and y are valid
 println!("{} {}", x, y); // OK
 ```
 
-### 규칙 3: 소유자가 스코프를 벗어나면 값이 드롭된다
+### Rule 3: When the owner goes out of scope, the value is dropped
 
 ```rust
 fn main() {
     {
-        let s = String::from("world"); // s가 소유자
+        let s = String::from("world"); // s is the owner
         println!("{}", s);
-    } // ← 이 중괄호에서 s가 스코프를 벗어남 → 자동 drop → 메모리 해제
+    } // ← s goes out of scope at this closing brace → auto drop → memory freed
 
-    // println!("{}", s); // 컴파일 에러: s는 이미 드롭됨
+    // println!("{}", s); // compile error: s has already been dropped
 }
 ```
 
-### 함수에 값을 넘길 때
+### Passing Values to Functions
 
 ```typescript
-// TypeScript — 함수에 넘겨도 원본 사용 가능
+// TypeScript — can still use original after passing to function
 function printUser(user: User): void {
   console.log(user.name);
 }
 
 const user = { id: 1, name: "Alice" };
 printUser(user);
-console.log(user.name); // 여전히 사용 가능
+console.log(user.name); // still usable
 ```
 
 ```rust
-// Rust — 소유권이 함수로 이동됨
-fn print_user(user: User) {    // user의 소유권이 이 함수로 이동
+// Rust — ownership moves into the function
+fn print_user(user: User) {    // ownership of user moves into this function
     println!("{}", user.name);
-} // 함수가 끝나면 user drop
+} // user is dropped when function ends
 
 let user = User { id: 1, name: "Alice".to_string() };
-print_user(user);            // 소유권 이전
-// println!("{}", user.name); // 컴파일 에러! 소유권이 없음
+print_user(user);            // ownership transferred
+// println!("{}", user.name); // compile error! ownership is gone
 ```
 
-이 문제를 해결하는 방법이 다음 섹션의 **Borrowing**입니다.
+The solution to this problem is **Borrowing**, covered in the next section.
 
 ---
 
-## 3-3. Borrowing과 References
+## 3-3. Borrowing and References
 
-소유권을 넘기지 않고 값을 잠깐 "빌려주는" 개념이 **Borrowing**입니다. `&`(앰퍼샌드)를 붙여 참조(reference)를 만듭니다.
+**Borrowing** is the concept of letting someone use a value temporarily without transferring ownership. You use `&` (ampersand) to create a reference.
 
-### 불변 참조 (Immutable Reference): `&T`
+### Immutable Reference: `&T`
 
 ```typescript
-// TypeScript — 객체는 참조로 전달됨 (기본)
+// TypeScript — objects are passed by reference (by default)
 function printUser(user: User): void {
   console.log(user.name);
-  // user를 수정하면 원본도 수정됨 (참조이므로)
+  // modifying user here would also modify the original (it's a reference)
 }
 
 const user = { id: 1, name: "Alice" };
@@ -193,33 +193,33 @@ console.log(user.name); // OK
 ```
 
 ```rust
-// Rust — 명시적으로 참조를 전달 (&)
-fn print_user(user: &User) {  // 소유권이 아닌 참조를 받음
+// Rust — explicitly pass a reference (&)
+fn print_user(user: &User) {  // receives a reference, not ownership
     println!("{}", user.name);
-    // user.name = "Bob".to_string(); // 에러: 불변 참조로는 수정 불가
+    // user.name = "Bob".to_string(); // error: cannot modify through an immutable reference
 }
 
 let user = User { id: 1, name: "Alice".to_string() };
-print_user(&user);           // &user: 참조를 전달
-println!("{}", user.name);   // OK: 소유권은 여전히 user에게 있음
+print_user(&user);           // &user: passing a reference
+println!("{}", user.name);   // OK: ownership still belongs to user
 ```
 
-불변 참조는 **동시에 여러 개**가 존재할 수 있습니다.
+Multiple immutable references can exist **at the same time**.
 
 ```rust
 let s = String::from("hello");
 let r1 = &s;
 let r2 = &s;
 let r3 = &s;
-println!("{} {} {}", r1, r2, r3); // OK: 불변 참조는 여러 개 가능
+println!("{} {} {}", r1, r2, r3); // OK: multiple immutable references are fine
 ```
 
-### 가변 참조 (Mutable Reference): `&mut T`
+### Mutable Reference: `&mut T`
 
 ```typescript
-// TypeScript — 함수 안에서 객체 수정
+// TypeScript — modifying an object inside a function
 function updateUser(user: User): void {
-  user.name = "Bob"; // 원본도 수정됨
+  user.name = "Bob"; // original is also modified
 }
 
 const user = { id: 1, name: "Alice" };
@@ -228,112 +228,112 @@ console.log(user.name); // "Bob"
 ```
 
 ```rust
-// Rust — 가변 참조 명시
+// Rust — explicit mutable reference
 fn update_user(user: &mut User) {
-    user.name = "Bob".to_string(); // OK: 가변 참조로는 수정 가능
+    user.name = "Bob".to_string(); // OK: can modify through a mutable reference
 }
 
-let mut user = User { id: 1, name: "Alice".to_string() }; // 변수도 mut이어야 함
-update_user(&mut user);  // &mut: 가변 참조 전달
+let mut user = User { id: 1, name: "Alice".to_string() }; // variable must also be mut
+update_user(&mut user);  // &mut: passing a mutable reference
 println!("{}", user.name); // "Bob"
 ```
 
-가변 참조는 **동시에 하나만** 존재할 수 있습니다.
+Only **one** mutable reference can exist at a time.
 
 ```rust
 let mut s = String::from("hello");
 
 let r1 = &mut s;
-// let r2 = &mut s; // 컴파일 에러! 가변 참조는 동시에 하나만
+// let r2 = &mut s; // compile error! only one mutable reference at a time
 
 r1.push_str(" world");
 println!("{}", r1); // OK
 ```
 
-### 왜 이런 제약이 있을까? — 데이터 레이스 방지
+### Why These Restrictions? — Preventing Data Races
 
 ```
-동시에 가변 참조가 여러 개라면?
- → 스레드 A와 스레드 B가 동시에 같은 값을 수정
- → 결과가 예측 불가 (데이터 레이스)
- → 멀티스레드 프로그램의 가장 골치 아픈 버그
+What if multiple mutable references existed simultaneously?
+ → Thread A and Thread B both modify the same value at the same time
+ → Unpredictable result (data race)
+ → The most painful bug in multi-threaded programs
 
-Rust의 규칙:
- → 가변 참조는 동시에 하나만
- → 불변 참조와 가변 참조가 동시에 존재 불가
- → 컴파일 타임에 데이터 레이스를 원천 차단
+Rust's rules:
+ → Only one mutable reference at a time
+ → Immutable and mutable references cannot coexist
+ → Data races are eliminated at compile time
 ```
 
-| 상황 | TypeScript | Rust |
+| Situation | TypeScript | Rust |
 |------|-----------|------|
-| 읽기만 하는 참조 | 제한 없음 | `&T` — 여러 개 가능 |
-| 수정 가능한 참조 | 제한 없음 | `&mut T` — 동시에 하나만 |
-| 불변+가변 혼용 | 제한 없음 | 동시 존재 불가 |
-| 원본 유효성 | 암묵적 | 컴파일러가 보장 |
+| Read-only reference | No restriction | `&T` — multiple allowed |
+| Mutable reference | No restriction | `&mut T` — only one at a time |
+| Mixed immutable + mutable | No restriction | Cannot coexist |
+| Original validity | Implicit | Guaranteed by compiler |
 
-### Dangling Reference 방지
+### Preventing Dangling References
 
 ```typescript
-// TypeScript — 이런 상황이 런타임에 생길 수 있음
+// TypeScript — this situation can occur at runtime
 function getRef(): { value: string } {
   const obj = { value: "hello" };
-  return obj; // 참조를 반환
+  return obj; // return a reference
 }
-// TypeScript/JS에서는 GC가 obj를 살려둠
+// TypeScript/JS: GC keeps obj alive
 ```
 
 ```rust
-// Rust — 컴파일 에러로 방지
+// Rust — prevented at compile time
 fn get_ref() -> &String {
     let s = String::from("hello");
-    &s  // 컴파일 에러! s가 이 함수 스코프에서 drop되는데 참조를 반환할 수 없음
+    &s  // compile error! s is dropped at end of this scope, cannot return a reference to it
 }
 
-// 해결책: 소유권을 반환
+// Solution: return ownership
 fn get_string() -> String {
     let s = String::from("hello");
-    s  // 소유권 이전 (OK)
+    s  // transfer ownership (OK)
 }
 ```
 
 ---
 
-## 3-4. Lifetimes 맛보기
+## 3-4. A Taste of Lifetimes
 
-[Lifetime(수명)](/glossary/#메모리--소유권)은 Rust에서 가장 어렵게 느껴지는 개념입니다. 깊이 들어가기 전에 핵심 아이디어만 잡겠습니다.
+[Lifetimes](/glossary/#메모리--소유권) are the concept most people find hardest in Rust. Before going deep, let's just grasp the core idea.
 
-### Lifetime이 뭔가요?
+### What Is a Lifetime?
 
-Lifetime은 **참조가 유효한 기간**입니다. Rust 컴파일러는 모든 참조의 유효 기간을 추적하여 "이미 drop된 값을 참조하는" 상황을 방지합니다.
+A lifetime is **the period during which a reference is valid**. The Rust compiler tracks the validity of every reference to prevent situations where you reference an already-dropped value.
 
 ```
-비유: 도서관 책 빌리기
+Analogy: borrowing a library book
 
-책(값) → 소유자: 도서관
-독자(함수) → 참조: 책을 빌림
-수명: 대출 기간
+Book (value) → owner: the library
+Reader (function) → reference: borrowing the book
+Lifetime: loan period
 
-규칙:
-- 대출 기간 중에는 책이 폐기될 수 없음
-- 대출 기간이 끝나면 책 반납
-- 컴파일러 = 도서관 사서 (대출 규칙 관리)
+Rules:
+- The book cannot be discarded while it is on loan
+- Book must be returned when the loan period ends
+- Compiler = librarian (enforces loan rules)
 ```
 
-### Lifetime이 명시적으로 필요한 경우
+### When Explicit Lifetimes Are Needed
 
-대부분의 경우 컴파일러가 lifetime을 추론합니다. 하지만 여러 참조가 관계될 때는 명시가 필요합니다.
+The compiler infers lifetimes in most cases. But when multiple references are involved, explicit annotation is needed.
 
 ```rust
-// 이 함수: 두 문자열 중 더 긴 것을 반환
-// 반환된 참조가 어느 쪽 참조와 같은 수명인지 컴파일러가 모름
-fn longest(x: &str, y: &str) -> &str { // 컴파일 에러
+// This function: returns the longer of two strings
+// The compiler doesn't know which reference's lifetime the return value shares
+fn longest(x: &str, y: &str) -> &str { // compile error
     if x.len() > y.len() { x } else { y }
 }
 ```
 
 ```rust
-// lifetime 매개변수 'a를 명시
-// "반환 참조의 수명은 x와 y 중 더 짧은 것과 같다"
+// Explicitly annotate lifetime parameter 'a
+// "the lifetime of the return reference is the shorter of x and y"
 fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
     if x.len() > y.len() { x } else { y }
 }
@@ -344,40 +344,40 @@ fn main() {
     {
         let s2 = String::from("xyz");
         result = longest(s1.as_str(), s2.as_str());
-        println!("{}", result); // OK: s2가 아직 살아 있음
+        println!("{}", result); // OK: s2 is still alive
     }
-    // println!("{}", result); // 에러: s2가 drop됐으므로 result 무효
+    // println!("{}", result); // error: s2 has been dropped, so result is invalid
 }
 ```
 
-### TypeScript와의 비교
+### Comparison with TypeScript
 
-TypeScript에는 Lifetime 개념이 없습니다. JavaScript의 GC가 참조 관계를 추적하여 "아직 참조되는" 객체를 메모리에 유지하기 때문입니다.
+TypeScript has no concept of Lifetimes. JavaScript's GC tracks reference relationships and keeps objects that are "still referenced" in memory.
 
 ```typescript
-// TypeScript — GC가 참조 수명을 관리
+// TypeScript — GC manages reference lifetimes
 function longest(a: string, b: string): string {
   return a.length > b.length ? a : b;
 }
-// GC가 반환된 string이 참조되는 한 메모리에 유지함
-// 개발자가 신경 쓸 필요 없음
+// GC keeps the returned string in memory as long as it is referenced
+// Developer doesn't need to worry about it
 ```
 
-| 개념 | TypeScript | Rust |
+| Concept | TypeScript | Rust |
 |------|-----------|------|
-| 참조 유효기간 관리 | GC (자동) | Lifetime (컴파일 타임) |
-| 명시 필요 | 없음 | 대부분 불필요, 일부 필요 |
-| 무효 참조(dangling) | GC가 방지 | 컴파일러가 방지 |
-| 런타임 비용 | GC 비용 있음 | 없음 (zero-cost) |
+| Reference lifetime management | GC (automatic) | Lifetime (compile time) |
+| Explicit annotation needed | No | Rarely, sometimes needed |
+| Dangling references | Prevented by GC | Prevented by compiler |
+| Runtime cost | GC overhead | None (zero-cost) |
 
-### Lifetime, 처음엔 어렵습니다
+### Lifetimes Are Hard at First
 
-솔직히 말하면, Lifetime은 Rust를 배우는 대부분의 사람들이 막히는 지점입니다. 처음에는 컴파일러 에러 메시지와 씨름하는 시간이 많습니다.
+To be honest, Lifetimes are the point where most people learning Rust get stuck. You'll spend a lot of time fighting compiler error messages at first.
 
-좋은 소식은 두 가지입니다:
+There's good news on two fronts:
 
-1. **실제로 lifetime을 직접 쓸 일은 생각보다 적습니다.** 컴파일러가 대부분 추론해줍니다.
-2. **컴파일러 에러 메시지가 매우 친절합니다.** 어떤 수명이 문제인지, 어떻게 고치면 되는지 설명해줍니다.
+1. **You'll rarely need to write lifetimes explicitly in practice.** The compiler infers them most of the time.
+2. **The compiler error messages are very helpful.** They explain which lifetime is problematic and how to fix it.
 
 ```
 error[E0106]: missing lifetime specifier
@@ -392,37 +392,37 @@ help: consider introducing a named lifetime parameter
    |           ++++     ++          ++          ++
 ```
 
-컴파일러가 직접 해결책까지 제시해줍니다. 이 정도면 든든한 페어 프로그래머가 생긴 셈입니다.
+The compiler even suggests the fix. It's like having a reliable pair programmer by your side.
 
 ---
 
-## Ownership 요약
+## Ownership Summary
 
-Rust의 Ownership 시스템은 처음에는 답답하게 느껴집니다. JS처럼 자유롭게 참조를 넘기고 수정하던 습관을 고쳐야 하니까요. 하지만 이 규칙들 덕분에 Rust는:
+Rust's Ownership system feels frustrating at first. You have to unlearn the habit of freely passing and mutating references like in JS. But thanks to these rules, Rust:
 
-- **메모리 안전성**을 런타임 비용 없이 보장
-- **데이터 레이스**를 컴파일 타임에 방지
-- **Null 포인터 역참조**, **Use-after-free**, **Double-free** 같은 고전적 버그를 원천 차단
+- Guarantees **memory safety** with no runtime cost
+- Prevents **data races** at compile time
+- Eliminates classic bugs like **null pointer dereferences**, **use-after-free**, and **double-free**
 
-Borrow Checker와 싸우다 지칠 때, 이 규칙들이 "당신을 괴롭히려는 게 아니라 당신의 코드를 안전하게 만들려는 것"이라고 기억해주세요. 익숙해지면 Borrow Checker가 없는 언어로 돌아가기 어려워집니다.
+When you're exhausted from fighting the Borrow Checker, remember: these rules aren't trying to make your life difficult — they're making your code safe. Once you get used to it, you'll find it hard to go back to languages without a Borrow Checker.
 
 ---
 
-## 프론트 관점 매핑
+## Frontend Perspective Mapping
 
-- React에서 state를 직접 mutate 하면 버그가 난다 → Rust의 `&mut` 규칙이 그 버그를 컴파일 단계에서 막는다.
-- 컴포넌트가 같은 객체를 참조하면 예측 불가능하다 → Rust는 "동시에 하나의 가변 소유자"로 강제한다.
-- 상태를 전달할 때 복사/참조를 의식해야 한다 → Rust의 move/borrow가 그대로 대응된다.
+- Directly mutating state in React causes bugs → Rust's `&mut` rules catch those bugs at compile time.
+- Components referencing the same object leads to unpredictable behavior → Rust enforces "one mutable owner at a time."
+- You need to be conscious of copy vs reference when passing state → Rust's move/borrow maps directly to this.
 
-## 요약
+## Summary
 
-- Ownership은 "누가 이 값을 책임지는가"를 명확히 한다.
-- 소유자는 동시에 하나만 존재한다.
-- 참조는 빌리기이며, 규칙을 어기면 컴파일이 실패한다.
-- `&mut`는 강력하지만 동시성 안전을 위해 제한된다.
-- 이 모델이 데이터 레이스와 use-after-free를 막는다.
+- Ownership makes it explicit "who is responsible for this value."
+- There can only be one owner at a time.
+- References are borrows; violating the rules causes a compile failure.
+- `&mut` is powerful but restricted for concurrency safety.
+- This model prevents data races and use-after-free.
 
-## 핵심 코드
+## Key Code
 
 ```rust runnable
 fn main() {
@@ -432,18 +432,18 @@ fn main() {
 }
 ```
 
-## 자주 하는 실수
+## Common Mistakes
 
-- move와 copy를 구분하지 못하고 값이 사라졌다고 당황한다.
-- `&mut`를 여러 곳에서 동시에 쓰려다 막힌다.
-- 참조의 수명(lifetime) 문제를 "문법"으로만 본다.
+- Getting confused between move and copy, surprised when a value "disappears."
+- Trying to use `&mut` in multiple places at the same time and hitting a wall.
+- Treating lifetime issues as purely a "syntax" problem.
 
-## 연습
+## Exercises
 
-1. `String`을 함수에 넘긴 뒤 다시 쓰는 코드를 작성해보고 컴파일 에러를 확인하자.
-2. 같은 코드를 `&str` 참조로 바꿔서 에러를 해결해보자.
+1. Write code that passes a `String` to a function and tries to use it again afterward — then see the compile error.
+2. Change the same code to use a `&str` reference and resolve the error.
 
-## 챕터 연결
+## Chapter Connections
 
-이전 챕터에서는 문법을 훑었다.
-다음 챕터에서는 enum/match 같은 제어 흐름 패턴을 더 깊게 본다.
+The previous chapter covered basic syntax.
+The next chapter takes a deeper look at control flow patterns like enum/match.

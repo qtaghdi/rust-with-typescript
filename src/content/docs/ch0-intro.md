@@ -1,15 +1,15 @@
 ---
-title: "Ch.1 — 들어가며"
-description: "TypeScript 개발자가 Rust를 배워야 하는 이유"
+title: "Ch.1 — Introduction"
+description: "Why TypeScript developers should learn Rust"
 ---
 
-TypeScript를 잘 쓰고 있는데, 왜 Rust를 배워야 할까요?
+You're already doing great work with TypeScript — so why bother learning Rust?
 
-솔직히 말할게요. 배우지 않아도 됩니다. Node.js와 TypeScript로 훌륭한 서비스를 만들 수 있고, 지금 이 순간에도 수많은 프로덕션 서버가 멀쩡히 돌아가고 있습니다. 하지만 이런 경험을 해본 적 있나요?
+Honestly? You don't have to. You can build excellent services with Node.js and TypeScript, and countless production servers are running just fine right now. But have you ever run into situations like these?
 
-## TypeScript 개발자라면 한 번쯤 겪었을 일들
+## Things Every TypeScript Developer Has Experienced
 
-### "이게 왜 undefined야?"
+### "Why is this undefined?"
 
 ```typescript
 interface User {
@@ -20,98 +20,98 @@ interface User {
   };
 }
 
-const user: User = fetchUser(); // 런타임에 뭔가 잘못됨
-console.log(user.profile?.address?.city ?? "Unknown"); // 타입은 맞는데...
+const user: User = fetchUser(); // something goes wrong at runtime
+console.log(user.profile?.address?.city ?? "Unknown"); // types look fine, but...
 ```
 
-TypeScript는 컴파일 타임에 타입을 체크하지만, **런타임에 실제로 무슨 일이 벌어지는지는 보장하지 않습니다.** `any`가 슬쩍 끼어들거나, 외부 API가 스펙과 다른 데이터를 보내면 그냥 뚫립니다.
+TypeScript checks types at compile time, but **it makes no guarantees about what actually happens at runtime.** Sneak in an `any`, or have an external API return data that doesn't match the spec, and it all falls apart.
 
-### "메모리를 얼마나 먹는 거야?"
+### "How much memory is this thing using?"
 
-Node.js 서버가 몇 시간 돌다 보면 메모리가 슬금슬금 올라갑니다. Garbage Collector가 언제 청소할지 모르고, GC가 돌 때마다 서버가 잠깐 멈추는 GC pause가 생깁니다. P99 레이턴시가 튀는 이유가 여기에 있을 때가 많습니다.
+Node.js servers tend to creep up in memory usage over time. The Garbage Collector decides when to clean up, and every time it runs, the server pauses briefly — those GC pauses are often the culprit behind P99 latency spikes.
 
-### "이 부분만 빠르면 좋겠는데..."
+### "I wish just this one part were faster..."
 
-이미지 처리, 암호화, 파싱 같은 CPU-intensive한 작업을 TypeScript로 짜면 한계가 보입니다. `worker_threads`로 돌리거나, 결국 C++ native addon을 붙이거나, Python으로 짠 서비스에 HTTP 요청을 보내는 어색한 구조가 됩니다.
+CPU-intensive work like image processing, encryption, or parsing hits a wall in TypeScript. You end up reaching for `worker_threads`, strapping on a C++ native addon, or making HTTP requests to a Python service — awkward architectures all around.
 
 ---
 
-## Rust가 해결하는 것들
+## What Rust Solves
 
-Rust는 이 문제들을 **언어 설계 자체**에서 해결합니다.
+Rust addresses these problems **at the language design level**.
 
-### 1. 컴파일 타임에 거의 모든 걸 잡아냅니다
+### 1. It catches almost everything at compile time
 
-TypeScript의 타입 체크는 "이 값이 string이어야 해"를 컴파일 타임에 검사합니다. Rust는 거기서 한 발 더 나아가, **메모리 접근, null 참조, 데이터 레이스까지** 컴파일 타임에 검사합니다. 런타임에서야 터지는 버그가 빌드 단계에서 걸립니다.
+TypeScript's type checking verifies "this value should be a string" at compile time. Rust goes a step further — **memory access, null dereferences, and data races** are all checked at compile time too. Bugs that would only blow up at runtime get caught during the build.
 
 ```rust
-// 이 코드는 컴파일 자체가 안 됩니다
+// This code won't even compile
 let x: Option<String> = None;
-println!("{}", x); // 컴파일 에러: Option을 직접 출력할 수 없음
-                   // "혹시 None이면 어떻게 할 건데?" 라고 컴파일러가 물어봄
+println!("{}", x); // compile error: can't print an Option directly
+                   // the compiler asks: "what do you want to do if it's None?"
 ```
 
-### 2. GC가 없습니다 — 그래도 메모리 누수가 없습니다
+### 2. No GC — and still no memory leaks
 
-Rust는 Garbage Collector 없이 메모리를 관리합니다. 대신 **Ownership** 시스템이라는 독창적인 개념으로 컴파일러가 메모리 할당과 해제 코드를 자동으로 삽입합니다. GC pause가 없으니 레이턴시가 예측 가능하고, 메모리 사용량이 안정적입니다.
+Rust manages memory without a Garbage Collector. Instead, its unique **Ownership** system lets the compiler automatically insert memory allocation and deallocation code. No GC pauses means predictable latency and stable memory usage.
 
-### 3. C/C++ 수준의 성능, 현대적인 문법
+### 3. C/C++-level performance, modern syntax
 
-Rust는 "제로코스트 추상화"를 지향합니다. 고수준 코드를 써도 컴파일하면 최적화된 기계어가 나옵니다. Cloudflare Workers, AWS Lambda의 일부, Linux 커널, Android 코어 컴포넌트가 Rust로 작성되고 있는 이유입니다.
-
----
-
-## TypeScript 개발자에게 Rust가 특히 잘 맞는 이유
-
-TypeScript를 쓴다는 건, "타입이 주는 안전망"의 가치를 이미 알고 있다는 뜻입니다. 동료들이 `any` 쓰자고 할 때 저항하고, 런타임 에러보다 컴파일 에러를 선호하는 사람이라면, **Rust의 엄격함이 낯설지 않을 겁니다.** 오히려 "TypeScript가 하고 싶었던 것의 완성판"처럼 느껴질 수 있어요.
-
-물론 러닝 커브가 있습니다. Ownership과 Borrow Checker는 처음엔 컴파일러와 싸우는 느낌을 줍니다. 하지만 그 싸움에서 이기고 나면, "이 코드는 안전하다"는 확신을 가지고 배포할 수 있게 됩니다.
+Rust pursues "zero-cost abstractions." Writing high-level code still compiles down to optimized machine code. That's why Cloudflare Workers, parts of AWS Lambda, the Linux kernel, and Android core components are being written in Rust.
 
 ---
 
-## 이 책에서 다루는 것
+## Why Rust Is a Natural Fit for TypeScript Developers
 
-이 책은 Rust 입문서가 아닙니다. **TypeScript 개발자를 위한 Rust 맥락 번역서**입니다.
+If you write TypeScript, you already understand the value of the safety net that types provide. If you're the person who pushes back when teammates want to use `any`, and you prefer compile-time errors over runtime ones, **Rust's strictness won't feel alien.** It might even feel like the fully realized version of what TypeScript was trying to be.
 
-- TypeScript 코드와 Rust 코드를 나란히 놓고 "이게 저거야"를 보여줍니다
-- "왜 JS에서는 되는데 Rust는 안 되지?" 라는 질문에 직접 답합니다
-- 실전 HTTP API, JSON 처리, 에러 핸들링 예제로 실용성을 챙깁니다
-
-TS 개발자로 잘 먹고 살고 있는데 굳이 Rust를 배우고 싶다면, 이 책은 그 여정을 조금 덜 험하게 만들어 줄 겁니다.
-
-자, 시작해봅시다.
+There is a learning curve, of course. Ownership and the Borrow Checker will make you feel like you're fighting the compiler at first. But once you win that fight, you can ship code with genuine confidence that it's safe.
 
 ---
 
-## 요약
+## What This Book Covers
 
-- TypeScript는 컴파일 타임에만 안전하고 런타임은 JS다.
-- Rust는 컴파일 타임에 메모리/동시성 오류까지 막는다.
-- GC 없이도 안전한 메모리 관리가 가능하다.
-- 성능이 필요한 지점에서 Rust가 강점을 가진다.
-- Rust 학습의 핵심은 문법이 아니라 사고방식 전환이다.
+This is not a Rust primer. It's **a Rust context guide for TypeScript developers**.
 
-## 핵심 코드
+- TypeScript and Rust code are placed side by side so you can see "this is that"
+- It directly answers the question "why does this work in JS but not in Rust?"
+- Practical examples cover HTTP APIs, JSON handling, and error handling
+
+If you're a working TypeScript developer who wants to pick up Rust, this book will make that journey a little less painful.
+
+Let's get started.
+
+---
+
+## Summary
+
+- TypeScript is only safe at compile time — at runtime, it's still JavaScript.
+- Rust blocks memory and concurrency errors at compile time.
+- Safe memory management is possible without a GC.
+- Rust shines wherever you need performance.
+- Learning Rust is fundamentally about shifting how you think, not just learning syntax.
+
+## Core Code
 
 ```rust runnable
 fn main() {
-    let message = "Rust는 컴파일 타임에 더 많은 것을 보장한다.";
+    let message = "Rust guarantees more things at compile time.";
     println!("{}", message);
 }
 ```
 
-## 자주 하는 실수
+## Common Mistakes
 
-- Rust를 TypeScript의 상위 호환처럼 생각한다.
-- "컴파일이 통과하면 안전하다"는 전제를 놓친다.
-- Ownership을 문법 문제로만 보고 철학을 이해하지 않는다.
+- Treating Rust as a superset of TypeScript.
+- Missing the premise that "if it compiles, it's safe."
+- Viewing Ownership as a syntax problem rather than understanding the philosophy.
 
-## 연습
+## Exercises
 
-1. TypeScript에서 런타임 에러가 나는 예제를 하나 떠올려 보자.
-2. 그 에러가 Rust에서 어떤 컴파일 에러로 나타날지 글로 설명해보자.
+1. Think of one example from TypeScript where you've seen a runtime error.
+2. Write out in plain language what compile-time error Rust would give you for the same situation.
 
-## 다음 챕터 미리보기
+## Preview of the Next Chapter
 
-이 챕터에서 "왜 Rust인가"의 이유를 정리했다.
-다음 챕터에서는 TypeScript와 Rust의 멘탈 모델 차이를 체계적으로 비교한다.
+This chapter laid out the reasons for choosing Rust.
+The next chapter systematically compares the mental models of TypeScript and Rust.

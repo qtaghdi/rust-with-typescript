@@ -1,43 +1,43 @@
 ---
-title: "Ch.10 — 스마트 포인터"
-description: Box, Rc, Arc, RefCell — 메모리를 안전하게 제어하는 Rust의 핵심 도구
+title: "Ch.10 — Smart Pointers"
+description: Box, Rc, Arc, RefCell — Rust's core tools for safe memory control
 ---
 
-TypeScript에는 참조(reference)가 하나뿐입니다. 모든 객체는 힙에 있고, GC가 알아서 관리합니다.
+TypeScript has only one kind of reference. Every object lives on the heap, and the GC manages it all automatically.
 
-Rust는 다릅니다. **무엇이 데이터를 소유하는지, 누가 얼마나 오래 참조할 수 있는지**를 컴파일 타임에 정확히 추적합니다. 스마트 포인터는 이 시스템 위에서 특별한 소유권 패턴을 가능하게 해주는 타입들입니다.
+Rust is different. It tracks **exactly what owns data and how long references can live** at compile time. Smart pointers are types that enable special ownership patterns on top of this system.
 
-## 왜 스마트 포인터가 필요한가?
+## Why Do We Need Smart Pointers?
 
-일반 참조 `&T`로 해결 안 되는 세 가지 상황이 있습니다:
+There are three situations that a plain reference `&T` cannot handle:
 
-| 상황 | 문제 | 해결책 |
+| Situation | Problem | Solution |
 |------|------|--------|
-| 컴파일 타임에 크기를 알 수 없는 타입 | `&T`는 크기를 알아야 함 | [`Box<T>`](/glossary/#boxt-vs-rct-vs-arct) |
-| 여러 곳에서 같은 데이터를 **읽기** 공유 | 소유권은 하나뿐 | [`Rc<T>`](/glossary/#boxt-vs-rct-vs-arct) |
-| 여러 스레드에서 안전하게 공유 | `Rc<T>`는 스레드 불안전 | [`Arc<T>`](/glossary/#boxt-vs-rct-vs-arct) |
-| 컴파일 타임이 아닌 **런타임에** 변경 가능성 결정 | borrow checker 규칙은 컴파일 타임 | `RefCell<T>` |
+| Types whose size is unknown at compile time | `&T` requires a known size | [`Box<T>`](/glossary/#boxt-vs-rct-vs-arct) |
+| **Reading** shared data from multiple places | Ownership can only have one owner | [`Rc<T>`](/glossary/#boxt-vs-rct-vs-arct) |
+| Safe sharing across multiple threads | `Rc<T>` is not thread-safe | [`Arc<T>`](/glossary/#boxt-vs-rct-vs-arct) |
+| Deciding mutability at **runtime** rather than compile time | Borrow checker rules apply at compile time | `RefCell<T>` |
 
 ---
 
-## Box&lt;T&gt; — 힙에 단일 값 저장
+## Box&lt;T&gt; — Storing a Single Value on the Heap
 
-`Box<T>`는 Rust에서 가장 단순한 스마트 포인터입니다. 값을 힙에 올리고, Box 자체는 스택에 둡니다.
+`Box<T>` is the simplest smart pointer in Rust. It places a value on the heap while the Box itself lives on the stack.
 
 ```rust
 fn main() {
-    let x = 5;             // 스택
-    let y = Box::new(5);   // 힙에 5를 저장, y는 스택의 포인터
+    let x = 5;             // stack
+    let y = Box::new(5);   // stores 5 on the heap, y is a pointer on the stack
 
     println!("{}", x);      // 5
-    println!("{}", y);      // 5 (역참조 자동 처리)
+    println!("{}", y);      // 5 (auto-dereferenced)
     println!("{}", *y + 1); // 6
 }
 ```
 
-### 재귀 타입에 Box가 필수인 이유
+### Why Box Is Required for Recursive Types
 
-TypeScript에서는 재귀 타입이 자연스럽습니다:
+In TypeScript, recursive types come naturally:
 
 ```typescript
 type List = {
@@ -46,21 +46,21 @@ type List = {
 };
 ```
 
-Rust에서 같은 시도를 하면:
+Attempting the same in Rust:
 
 ```rust
-// 컴파일 에러!
+// Compile error!
 enum List {
-    Cons(i32, List),  // List의 크기를 알 수 없음
+    Cons(i32, List),  // size of List is unknown
     Nil,
 }
 ```
 
-컴파일러가 `List`의 크기를 계산하려면 `List` 안에 `List`가 있으므로 무한히 커집니다. `Box`로 힙에 넣으면 포인터 크기(8바이트)로 고정됩니다:
+When the compiler tries to calculate the size of `List`, it finds another `List` inside, leading to infinite size. Wrapping it in a `Box` puts it on the heap, fixing the size to a pointer width (8 bytes):
 
 ```rust
 enum List {
-    Cons(i32, Box<List>),  // 포인터 크기로 고정
+    Cons(i32, Box<List>),  // fixed to pointer size
     Nil,
 }
 
@@ -72,9 +72,9 @@ fn main() {
 }
 ```
 
-### 트레이트 객체 (dyn Trait)
+### Trait Objects (dyn Trait)
 
-Box의 또 다른 핵심 용도는 **동적 디스패치**입니다. TypeScript의 인터페이스와 비슷하지만, Rust에서는 크기를 컴파일 타임에 알아야 하므로 `Box`가 필요합니다:
+Another key use of Box is **dynamic dispatch**. It is similar to TypeScript interfaces, but in Rust, since sizes must be known at compile time, `Box` is required:
 
 ```typescript
 // TypeScript
@@ -103,9 +103,9 @@ impl Shape for Rectangle {
     fn area(&self) -> f64 { self.width * self.height }
 }
 
-// Box<dyn Shape>: 어떤 Shape 구현체든 담을 수 있음
+// Box<dyn Shape>: can hold any type that implements Shape
 fn print_area(shape: &Box<dyn Shape>) {
-    println!("넓이: {:.2}", shape.area());
+    println!("Area: {:.2}", shape.area());
 }
 
 fn main() {
@@ -122,12 +122,12 @@ fn main() {
 
 ---
 
-## Rc&lt;T&gt; — 단일 스레드에서 소유권 공유
+## Rc&lt;T&gt; — Shared Ownership in a Single Thread
 
-`Rc`는 Reference Counting의 약자입니다. Python이나 Swift가 메모리를 관리하는 방식과 같습니다 — 참조 횟수를 세고, 0이 되면 메모리를 해제합니다.
+`Rc` stands for Reference Counting. It works the same way Python and Swift manage memory — it counts references and frees memory when the count reaches zero.
 
 :::note
-`Rc<T>`는 **단일 스레드 전용**입니다. 멀티스레드에서는 `Arc<T>`를 사용하세요.
+`Rc<T>` is **single-threaded only**. Use `Arc<T>` for multithreaded scenarios.
 :::
 
 ```rust
@@ -136,33 +136,33 @@ use std::rc::Rc;
 fn main() {
     let data = Rc::new(vec![1, 2, 3]);
 
-    let a = Rc::clone(&data);  // 참조 카운트: 2
-    let b = Rc::clone(&data);  // 참조 카운트: 3
+    let a = Rc::clone(&data);  // reference count: 2
+    let b = Rc::clone(&data);  // reference count: 3
 
-    println!("참조 카운트: {}", Rc::strong_count(&data)); // 3
+    println!("Reference count: {}", Rc::strong_count(&data)); // 3
 
     println!("data: {:?}", data);
     println!("a:    {:?}", a);
     println!("b:    {:?}", b);
 
-    drop(a); // 참조 카운트: 2
-    drop(b); // 참조 카운트: 1
+    drop(a); // reference count: 2
+    drop(b); // reference count: 1
 
-    println!("남은 참조: {}", Rc::strong_count(&data)); // 1
-} // data 드롭 → 참조 카운트: 0 → 메모리 해제
+    println!("Remaining references: {}", Rc::strong_count(&data)); // 1
+} // data dropped → reference count: 0 → memory freed
 ```
 
-### Rc의 제약: 불변 참조만 가능
+### Rc's Limitation: Immutable References Only
 
-`Rc<T>`로 감싼 데이터는 불변입니다. 참조가 여러 개이므로 동시에 변경하면 안 되기 때문입니다. 변경도 필요하다면 `RefCell`을 함께 사용합니다.
+Data wrapped in `Rc<T>` is immutable. Because multiple references exist, simultaneous mutation would be unsafe. If mutation is also needed, use `RefCell` together with `Rc`.
 
 ---
 
-## RefCell&lt;T&gt; — 런타임 borrow 검사
+## RefCell&lt;T&gt; — Runtime Borrow Checking
 
-Rust의 borrow checker는 컴파일 타임에 동작합니다. 하지만 때로는 **런타임에야 알 수 있는 경우**가 있습니다.
+Rust's borrow checker operates at compile time. But sometimes **you only know at runtime** whether a particular borrow is safe.
 
-`RefCell<T>`은 borrow 규칙을 **런타임으로 미룹니다**. 규칙을 위반하면 컴파일 에러 대신 런타임 패닉이 발생합니다.
+`RefCell<T>` **defers borrow rules to runtime**. Violating the rules causes a runtime panic instead of a compile error.
 
 ```rust
 use std::cell::RefCell;
@@ -170,40 +170,40 @@ use std::cell::RefCell;
 fn main() {
     let data = RefCell::new(vec![1, 2, 3]);
 
-    // borrow(): 불변 참조 (& 역할)
+    // borrow(): immutable reference (like &)
     {
         let r1 = data.borrow();
-        let r2 = data.borrow(); // 동시에 여러 불변 참조 OK
+        let r2 = data.borrow(); // multiple immutable references at once are OK
         println!("{:?}, {:?}", r1, r2);
-    } // r1, r2 드롭
+    } // r1, r2 dropped
 
-    // borrow_mut(): 가변 참조 (&mut 역할)
+    // borrow_mut(): mutable reference (like &mut)
     {
         let mut w = data.borrow_mut();
         w.push(4);
-    } // w 드롭
+    } // w dropped
 
     println!("{:?}", data.borrow()); // [1, 2, 3, 4]
 }
 ```
 
-### 런타임 패닉 예시
+### Runtime Panic Example
 
 ```rust
 use std::cell::RefCell;
 
 fn main() {
     let data = RefCell::new(5);
-    let r1 = data.borrow();     // 불변 참조
-    let r2 = data.borrow_mut(); // ⚠️ 패닉! 이미 불변 참조 중
+    let r1 = data.borrow();     // immutable reference
+    let r2 = data.borrow_mut(); // ⚠️ panic! already borrowed immutably
 }
 ```
 
 ---
 
-## Rc&lt;RefCell&lt;T&gt;&gt; — 공유 + 변경 패턴
+## Rc&lt;RefCell&lt;T&gt;&gt; — Shared + Mutable Pattern
 
-단일 스레드에서 "여러 곳에서 공유하면서 변경도 가능"하게 하는 핵심 패턴입니다.
+The core pattern for "shared from multiple places while also allowing mutation" in a single thread.
 
 ```rust
 use std::rc::Rc;
@@ -226,7 +226,7 @@ fn main() {
         children: vec![],
     }));
 
-    // root를 두 곳에서 공유하면서 변경
+    // shared from two places while mutating
     root.borrow_mut().children.push(Rc::clone(&child));
 
     let root_ref = Rc::clone(&root);
@@ -234,25 +234,25 @@ fn main() {
 }
 ```
 
-TypeScript로 비유하면:
+The TypeScript equivalent:
 
 ```typescript
-// TypeScript: 그냥 객체 참조로 됨
+// TypeScript: plain object references handle this naturally
 const root = { value: 1, children: [] };
 const child = { value: 2, children: [] };
-const rootRef = root; // 같은 객체 참조
+const rootRef = root; // same object reference
 
 root.children.push(child);
-console.log(rootRef); // 변경 사항 보임
+console.log(rootRef); // mutation is visible
 ```
 
-Rust에서 소유권과 borrow 규칙이 있기 때문에 `Rc<RefCell<T>>`라는 명시적 패턴이 필요합니다.
+Because of Rust's ownership and borrow rules, the explicit `Rc<RefCell<T>>` pattern is necessary.
 
 ---
 
-## Arc&lt;T&gt; — 멀티스레드 공유
+## Arc&lt;T&gt; — Multithreaded Sharing
 
-`Rc<T>`의 스레드 안전(thread-safe) 버전입니다. `Rc`가 카운트를 일반 연산으로 하는 반면, `Arc`는 **원자적(atomic) 연산**으로 합니다.
+The thread-safe version of `Rc<T>`. While `Rc` increments its count with plain operations, `Arc` uses **atomic operations**.
 
 ```rust
 use std::sync::Arc;
@@ -264,9 +264,9 @@ fn main() {
     let mut handles = vec![];
 
     for i in 0..3 {
-        let data = Arc::clone(&data); // 각 스레드에 클론
+        let data = Arc::clone(&data); // clone for each thread
         let handle = thread::spawn(move || {
-            println!("스레드 {}: {:?}", i, data);
+            println!("Thread {}: {:?}", i, data);
         });
         handles.push(handle);
     }
@@ -277,9 +277,9 @@ fn main() {
 }
 ```
 
-### Arc + Mutex: 멀티스레드에서 공유 + 변경
+### Arc + Mutex: Shared Mutation Across Threads
 
-`RefCell`은 스레드 불안전합니다. 멀티스레드에서 공유 변경이 필요하면 `Mutex`를 사용합니다:
+`RefCell` is not thread-safe. When you need shared mutation across threads, use `Mutex`:
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -292,9 +292,9 @@ fn main() {
     for _ in 0..5 {
         let counter = Arc::clone(&counter);
         let handle = thread::spawn(move || {
-            let mut num = counter.lock().unwrap(); // lock 획득
+            let mut num = counter.lock().unwrap(); // acquire lock
             *num += 1;
-        }); // lock 자동 해제
+        }); // lock automatically released
         handles.push(handle);
     }
 
@@ -302,44 +302,44 @@ fn main() {
         handle.join().unwrap();
     }
 
-    println!("결과: {}", *counter.lock().unwrap()); // 5
+    println!("Result: {}", *counter.lock().unwrap()); // 5
 }
 ```
 
 ---
 
-## 한눈에 비교
+## Side-by-Side Comparison
 
-| 타입 | 소유자 수 | 스레드 안전 | 변경 가능 | 사용 시기 |
+| Type | Owners | Thread-Safe | Mutable | When to Use |
 |------|-----------|------------|-----------|-----------|
-| `T` | 1 | - | ✓ | 기본 소유 |
-| `&T` | - | ✓ | ✗ | 짧은 읽기 참조 |
-| `&mut T` | - | ✗ | ✓ | 짧은 변경 참조 |
-| `Box<T>` | 1 | - | ✓ | 힙 할당, 재귀 타입 |
-| `Rc<T>` | 여럿 | ✗ | ✗ | 단일 스레드 공유 |
-| `Rc<RefCell<T>>` | 여럿 | ✗ | ✓ | 단일 스레드 공유+변경 |
-| `Arc<T>` | 여럿 | ✓ | ✗ | 멀티스레드 공유 |
-| `Arc<Mutex<T>>` | 여럿 | ✓ | ✓ | 멀티스레드 공유+변경 |
+| `T` | 1 | - | ✓ | Basic ownership |
+| `&T` | - | ✓ | ✗ | Short-lived read reference |
+| `&mut T` | - | ✗ | ✓ | Short-lived mutable reference |
+| `Box<T>` | 1 | - | ✓ | Heap allocation, recursive types |
+| `Rc<T>` | Many | ✗ | ✗ | Single-thread shared ownership |
+| `Rc<RefCell<T>>` | Many | ✗ | ✓ | Single-thread shared + mutable |
+| `Arc<T>` | Many | ✓ | ✗ | Multithreaded shared ownership |
+| `Arc<Mutex<T>>` | Many | ✓ | ✓ | Multithreaded shared + mutable |
 
-## 언제 무엇을 쓸까?
+## Choosing the Right Tool
 
 ```
-데이터를 여러 곳에서 써야 하나?
-├── 아니오 → 일반 소유권 또는 &T 참조
-└── 예
-    ├── 여러 스레드에서?
-    │   ├── 변경 필요? → Arc<Mutex<T>>
-    │   └── 읽기만? → Arc<T>
-    └── 단일 스레드에서?
-        ├── 변경 필요? → Rc<RefCell<T>>
-        └── 읽기만? → Rc<T>
+Do you need to share data from multiple places?
+├── No  → Plain ownership or &T reference
+└── Yes
+    ├── Across multiple threads?
+    │   ├── Need mutation? → Arc<Mutex<T>>
+    │   └── Read only?     → Arc<T>
+    └── Single thread?
+        ├── Need mutation? → Rc<RefCell<T>>
+        └── Read only?     → Rc<T>
 ```
 
-## 요약
+## Summary
 
-- **`Box<T>`**: 힙에 올리기, 재귀 타입, `dyn Trait`
-- **`Rc<T>`**: 단일 스레드에서 읽기 공유
-- **`RefCell<T>`**: 런타임 borrow 검사로 내부 변경
-- **`Rc<RefCell<T>>`**: 단일 스레드 공유 + 변경
-- **`Arc<T>`**: 멀티스레드 읽기 공유
-- **`Arc<Mutex<T>>`**: 멀티스레드 공유 + 변경
+- **`Box<T>`**: Put on the heap, recursive types, `dyn Trait`
+- **`Rc<T>`**: Shared read access in a single thread
+- **`RefCell<T>`**: Interior mutability with runtime borrow checking
+- **`Rc<RefCell<T>>`**: Single-thread shared + mutable
+- **`Arc<T>`**: Shared read access across threads
+- **`Arc<Mutex<T>>`**: Multithreaded shared + mutable

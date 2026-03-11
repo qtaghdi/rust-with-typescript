@@ -1,95 +1,95 @@
 ---
-title: "Ch.3 — 문법 기초"
-description: "변수, 함수, 타입, async/await 등 핵심 문법 대조"
+title: "Ch.3 — Syntax Basics"
+description: "Side-by-side comparison of variables, functions, types, async/await, and more"
 ---
 
-## 2-1. 변수와 타입
+## 2-1. Variables and Types
 
-### 기본 선언
+### Basic Declarations
 
-TypeScript에서는 `let`과 `const`로 변수를 선언합니다. Rust에서는 둘 다 `let`이지만, **기본이 불변(immutable)** 입니다.
+In TypeScript, you declare variables with `let` and `const`. In Rust, both use `let`, but variables are **immutable by default**.
 
 ```typescript
 // TypeScript
-let count = 0;          // 타입 추론: number
-const name = "Alice";   // 재할당 불가
-let age: number = 30;   // 명시적 타입
+let count = 0;          // type inference: number
+const name = "Alice";   // cannot be reassigned
+let age: number = 30;   // explicit type
 
 count = 1;  // OK
-// name = "Bob"; // 에러: const는 재할당 불가
+// name = "Bob"; // error: const cannot be reassigned
 ```
 
 ```rust
 // Rust
-let count = 0;        // 타입 추론: i32, 그리고 기본이 불변!
-let name = "Alice";   // 불변
-let age: u32 = 30;    // 명시적 타입
+let count = 0;        // type inference: i32, and immutable by default!
+let name = "Alice";   // immutable
+let age: u32 = 30;    // explicit type
 
-// count = 1; // 컴파일 에러: cannot assign twice to immutable variable
+// count = 1; // compile error: cannot assign twice to immutable variable
 
-let mut count = 0;    // mut을 붙여야 변경 가능
+let mut count = 0;    // must add mut to allow mutation
 count = 1;            // OK
 ```
 
-> **핵심 차이**: TypeScript의 `let`은 "재할당 가능", Rust의 `let`은 기본이 "재할당 불가". Rust에서 변경이 필요하면 `let mut`을 써야 합니다.
+> **Key difference**: TypeScript's `let` means "can be reassigned." Rust's `let` means "cannot be reassigned" by default. In Rust, you need `let mut` if you want to change a value.
 
-### 변수와 타입 비교표
+### Variable and Type Comparison
 
-| 개념 | TypeScript | Rust |
-|------|-----------|------|
-| 불변 변수 | `const x = 1` | `let x = 1` |
-| 가변 변수 | `let x = 1` | `let mut x = 1` |
-| 타입 명시 | `let x: number = 1` | `let x: i32 = 1` |
-| 타입 추론 | O (number, string 등) | O (i32, &str 등) |
-| 전역 상수 | `const MAX = 100` | `const MAX: u32 = 100` |
-| 사용 전 선언 | 선택적 | 필수 |
+| Concept | TypeScript | Rust |
+|---------|-----------|------|
+| Immutable variable | `const x = 1` | `let x = 1` |
+| Mutable variable | `let x = 1` | `let mut x = 1` |
+| Explicit type | `let x: number = 1` | `let x: i32 = 1` |
+| Type inference | Yes (number, string, etc.) | Yes (i32, &str, etc.) |
+| Global constant | `const MAX = 100` | `const MAX: u32 = 100` |
+| Declaration before use | Optional | Required |
 
-### 숫자 타입
+### Numeric Types
 
-TypeScript는 `number` 하나지만, Rust는 크기와 부호에 따라 나뉩니다.
+TypeScript has a single `number` type. Rust has separate types based on size and signedness.
 
 ```typescript
-// TypeScript: number 하나로 모든 숫자
+// TypeScript: one number type for everything
 let a: number = 42;
 let b: number = 3.14;
 let c: number = -10;
 ```
 
 ```rust
-// Rust: 정수와 부동소수점이 구분되고, 크기도 지정
-let a: i32 = 42;      // 32비트 정수 (부호 있음)
-let b: f64 = 3.14;    // 64비트 부동소수점
-let c: i64 = -10;     // 64비트 정수 (부호 있음)
-let d: u32 = 100;     // 32비트 정수 (부호 없음, 0 이상)
-let e: usize = 10;    // 플랫폼 크기 (배열 인덱스에 사용)
+// Rust: integers and floats are distinct, and sizes are explicit
+let a: i32 = 42;      // 32-bit signed integer
+let b: f64 = 3.14;    // 64-bit floating point
+let c: i64 = -10;     // 64-bit signed integer
+let d: u32 = 100;     // 32-bit unsigned integer (non-negative)
+let e: usize = 10;    // platform-sized integer (used for array indices)
 ```
 
-### Shadowing: Rust만의 특이한 기능
+### Shadowing: A Rust-Specific Feature
 
-Rust에서는 같은 이름으로 새 변수를 선언(shadowing)할 수 있습니다. TypeScript에서는 같은 스코프에서 불가능합니다.
+In Rust, you can declare a new variable with the same name (shadowing). TypeScript doesn't allow this within the same scope.
 
 ```typescript
-// TypeScript — 같은 스코프에서 재선언 불가
+// TypeScript — cannot re-declare in the same scope
 let value = "42";
-// let value = parseInt(value); // 에러: 중복 선언
-let numValue = parseInt(value); // 다른 이름 써야 함
+// let value = parseInt(value); // error: duplicate declaration
+let numValue = parseInt(value); // have to use a different name
 ```
 
 ```rust
-// Rust — Shadowing: 같은 이름, 다른 타입도 OK
+// Rust — Shadowing: same name, even a different type is fine
 let value = "42";
-let value = value.parse::<i32>().unwrap(); // 타입이 &str → i32로 바뀜
-// 이전 value는 사라지고 새 value(i32)가 됨
+let value = value.parse::<i32>().unwrap(); // type changes from &str to i32
+// the previous value is gone, and the new value (i32) takes its place
 println!("{}", value); // 42
 ```
 
-Shadowing은 "같은 개념의 값을 변환할 때" 유용합니다. `mut`과 달리 타입을 바꿀 수 있고, 변환 후에는 원래 값에 접근할 수 없습니다.
+Shadowing is useful when "transforming a value that represents the same concept." Unlike `mut`, it allows the type to change, and after the transformation you can no longer access the original value.
 
 ---
 
-## 2-2. 함수
+## 2-2. Functions
 
-### 기본 함수 문법
+### Basic Function Syntax
 
 ```typescript
 // TypeScript
@@ -97,15 +97,15 @@ function add(a: number, b: number): number {
   return a + b;
 }
 
-// 화살표 함수
+// arrow function
 const multiply = (a: number, b: number): number => a * b;
 
-// 기본값 매개변수
+// default parameter
 function greet(name: string, greeting: string = "Hello"): string {
   return `${greeting}, ${name}!`;
 }
 
-// 선택적 매개변수
+// optional parameter
 function log(message: string, level?: string): void {
   console.log(`[${level ?? "INFO"}] ${message}`);
 }
@@ -114,14 +114,14 @@ function log(message: string, level?: string): void {
 ```rust
 // Rust
 fn add(a: i32, b: i32) -> i32 {
-    a + b  // return 키워드 생략 가능 (마지막 표현식이 반환값)
+    a + b  // return keyword can be omitted (last expression is the return value)
 }
 
-// 클로저 (화살표 함수 대응)
+// closure (equivalent to arrow functions)
 let multiply = |a: i32, b: i32| -> i32 { a * b };
-let multiply_short = |a: i32, b: i32| a * b; // 단일 표현식은 중괄호 생략
+let multiply_short = |a: i32, b: i32| a * b; // single expression, braces optional
 
-// 기본값은 없음 → 별도 함수나 Option으로 처리
+// no default parameters → use a separate function or Option
 fn greet(name: &str, greeting: &str) -> String {
     format!("{}, {}!", greeting, name)
 }
@@ -130,39 +130,39 @@ fn greet_default(name: &str) -> String {
     greet(name, "Hello")
 }
 
-// 선택적 매개변수 → Option<T> 사용
+// optional parameter → use Option<T>
 fn log(message: &str, level: Option<&str>) {
     println!("[{}] {}", level.unwrap_or("INFO"), message);
 }
 
-// 호출 시
+// when calling
 log("Server started", Some("DEBUG"));
 log("Server started", None);
 ```
 
-### 반환 타입: return vs 마지막 표현식
+### Return Types: return vs. Last Expression
 
-Rust에서 `return`은 조기 반환(early return)에만 씁니다. 함수 마지막 표현식은 자동으로 반환됩니다.
+In Rust, `return` is only used for early returns. The last expression in a function is automatically returned.
 
 ```rust
 fn classify(n: i32) -> &'static str {
     if n < 0 {
-        return "negative"; // 조기 반환
+        return "negative"; // early return
     }
     if n == 0 {
-        "zero"  // return 없음 — 마지막 표현식
+        "zero"  // no return — this is the last expression
     } else {
         "positive"
     }
 }
 ```
 
-> 세미콜론(`;`)에 주의: Rust에서 세미콜론이 있으면 "문(statement)", 없으면 "식(expression)"입니다. 반환값이 되려면 마지막 줄에 세미콜론이 없어야 합니다.
+> Watch out for semicolons (`;`): in Rust, a line ending with a semicolon is a "statement," and one without is an "expression." The last line must not have a semicolon if it's meant to be the return value.
 
-### 클로저 비교
+### Closure Comparison
 
 ```typescript
-// TypeScript 클로저
+// TypeScript closures
 const numbers = [1, 2, 3, 4, 5];
 const doubled = numbers.map(n => n * 2);
 const evens = numbers.filter(n => n % 2 === 0);
@@ -170,22 +170,22 @@ const sum = numbers.reduce((acc, n) => acc + n, 0);
 ```
 
 ```rust
-// Rust 클로저
+// Rust closures
 let numbers = vec![1, 2, 3, 4, 5];
 let doubled: Vec<i32> = numbers.iter().map(|n| n * 2).collect();
 let evens: Vec<&i32> = numbers.iter().filter(|n| *n % 2 == 0).collect();
 let sum: i32 = numbers.iter().sum();
-// 또는
+// or
 let sum: i32 = numbers.iter().fold(0, |acc, n| acc + n);
 ```
 
 ---
 
-## 2-3. 인터페이스 → struct / trait
+## 2-3. interface → struct / trait
 
-### TypeScript interface vs Rust struct
+### TypeScript interface vs. Rust struct
 
-TypeScript의 `interface`는 객체의 형태(shape)를 정의합니다. Rust에서 데이터 구조는 [`struct`](/glossary/#타입-시스템)로, 동작은 `impl`과 [`trait`](/glossary/#타입-시스템)으로 분리합니다.
+TypeScript's `interface` defines the shape of an object. In Rust, data structures use [`struct`](/glossary/#타입-시스템), and behavior is separated into `impl` and [`trait`](/glossary/#타입-시스템).
 
 ```typescript
 // TypeScript
@@ -216,27 +216,27 @@ console.log(user.greet()); // "Hi, I'm Alice"
 ```
 
 ```rust
-// Rust: 데이터(struct)와 동작(impl, trait)을 분리
+// Rust: data (struct) and behavior (impl, trait) are separated
 struct User {
     id: u32,
     name: String,
     email: String,
 }
 
-// 메서드 구현 (class의 메서드와 유사)
+// method implementation (similar to class methods)
 impl User {
-    // 생성자 패턴 (new는 관례적 이름, 특별한 키워드 아님)
+    // constructor pattern (new is a conventional name, not a keyword)
     fn new(id: u32, name: String, email: String) -> User {
         User { id, name, email }
     }
 }
 
-// trait = TypeScript의 interface (동작 정의)
+// trait = TypeScript's interface (defines behavior)
 trait Greetable {
     fn greet(&self) -> String;
 }
 
-// User가 Greetable을 구현
+// User implements Greetable
 impl Greetable for User {
     fn greet(&self) -> String {
         format!("Hi, I'm {}", self.name)
@@ -247,18 +247,18 @@ let user = User::new(1, "Alice".to_string(), "alice@example.com".to_string());
 println!("{}", user.greet()); // "Hi, I'm Alice"
 ```
 
-### 핵심 차이: 데이터와 동작의 분리
+### Key Difference: Separating Data from Behavior
 
-| 개념 | TypeScript | Rust |
-|------|-----------|------|
-| 데이터 구조 | `interface` / `class` | `struct` |
-| 동작 정의 | `interface` (메서드 시그니처) | `trait` |
-| 동작 구현 | `class implements Interface` | `impl Trait for Struct` |
-| 생성자 | `constructor` | `fn new()`(관례) |
+| Concept | TypeScript | Rust |
+|---------|-----------|------|
+| Data structure | `interface` / `class` | `struct` |
+| Define behavior | `interface` (method signatures) | `trait` |
+| Implement behavior | `class implements Interface` | `impl Trait for Struct` |
+| Constructor | `constructor` | `fn new()` (convention) |
 | `this` | `this` | `self` / `&self` / `&mut self` |
-| 상속 | `extends` | 없음 (조합으로 대체) |
+| Inheritance | `extends` | None (use composition instead) |
 
-### 여러 trait 구현
+### Implementing Multiple Traits
 
 ```typescript
 // TypeScript
@@ -298,7 +298,7 @@ impl Serializable for User {
 
 ## 2-4. null/undefined → Option\<T\>
 
-### TypeScript의 null/undefined
+### TypeScript's null/undefined
 
 ```typescript
 // TypeScript
@@ -315,15 +315,15 @@ const city = user?.profile?.address?.city;
 // nullish coalescing
 const displayName = user?.name ?? "Anonymous";
 
-// null 체크 후 사용
+// use after null check
 if (user !== null && user !== undefined) {
-  console.log(user.name); // user가 User임이 보장됨
+  console.log(user.name); // user is guaranteed to be User here
 }
 ```
 
-### Rust의 Option\<T\>
+### Rust's Option\<T\>
 
-Rust에는 `null`이 없습니다. 대신 값이 있을 수도 없을 수도 있는 상황을 [`Option<T>`](/glossary/#타입-시스템)로 표현합니다.
+Rust has no `null`. Instead, situations where a value may or may not be present are expressed with [`Option<T>`](/glossary/#타입-시스템).
 
 ```rust
 // Rust
@@ -333,51 +333,51 @@ fn find_user(id: u32) -> Option<User> {
 
 let user = find_user(1);
 
-// match로 분기
+// branch with match
 match user {
     Some(u) => println!("{}", u.name),
     None => println!("User not found"),
 }
 
-// if let — 값이 있을 때만 실행
+// if let — only runs if a value is present
 if let Some(u) = find_user(1) {
     println!("{}", u.name);
 }
 
-// unwrap_or — 기본값 제공 (nullish coalescing ??)
+// unwrap_or — provide a default (like nullish coalescing ??)
 let name = find_user(1)
     .map(|u| u.name.clone())
     .unwrap_or_else(|| "Anonymous".to_string());
 
-// ? 연산자 — Option을 체이닝 (optional chaining과 유사)
+// ? operator — chains Options (similar to optional chaining)
 fn get_city(user_id: u32) -> Option<String> {
-    let user = find_user(user_id)?;  // None이면 즉시 None 반환
+    let user = find_user(user_id)?;  // returns None immediately if None
     let profile = user.profile?;
     let address = profile.address?;
     Some(address.city.clone())
 }
 ```
 
-### 대응 관계 정리
+### Mapping the Concepts
 
-| TypeScript | Rust | 의미 |
-|-----------|------|------|
-| `T \| null` | `Option<T>` | 값이 없을 수 있음 |
-| `null` / `undefined` | `None` | 값 없음 |
-| 값 있음 | `Some(value)` | 값 있음 |
-| `?.` (optional chaining) | `?` 연산자 | None이면 조기 반환 |
-| `?? "default"` | `.unwrap_or("default")` | 없으면 기본값 |
-| `?? fn()` | `.unwrap_or_else(\|\| fn())` | 없으면 함수 실행 |
-| null 체크 후 사용 | `if let Some(x) = ...` | 패턴 매칭 |
-| `!` (non-null assertion) | `.unwrap()` | 값 있다고 강제 (panic 위험) |
+| TypeScript | Rust | Meaning |
+|-----------|------|---------|
+| `T \| null` | `Option<T>` | value may be absent |
+| `null` / `undefined` | `None` | no value |
+| value present | `Some(value)` | value present |
+| `?.` (optional chaining) | `?` operator | return None early if absent |
+| `?? "default"` | `.unwrap_or("default")` | fallback if absent |
+| `?? fn()` | `.unwrap_or_else(\|\| fn())` | call function if absent |
+| use after null check | `if let Some(x) = ...` | pattern matching |
+| `!` (non-null assertion) | `.unwrap()` | force value present (risk of panic) |
 
-> **왜 이게 더 나을까?** TypeScript에서 `string | null`은 `string`을 기대하는 곳에 실수로 넘길 수 있고, 컴파일러가 모든 경로를 강제하지 않습니다. Rust의 `Option<T>`는 반드시 `Some` / `None` 케이스를 처리해야 컴파일됩니다.
+> **Why is this better?** In TypeScript, `string | null` can accidentally be passed where a `string` is expected, and the compiler doesn't force you to handle all paths. Rust's `Option<T>` won't compile unless you handle both the `Some` and `None` cases.
 
 ---
 
 ## 2-5. try/catch → Result\<T, E\>
 
-### TypeScript의 예외 처리
+### TypeScript's Exception Handling
 
 ```typescript
 // TypeScript
@@ -385,7 +385,7 @@ function readFile(path: string): string {
   try {
     return fs.readFileSync(path, "utf-8");
   } catch (e) {
-    // e의 타입이 unknown... 뭔지 모름
+    // e is of type unknown... we don't know what it is
     throw new Error(`Failed to read file: ${e}`);
   }
 }
@@ -393,61 +393,61 @@ function readFile(path: string): string {
 async function processData(path: string): Promise<Data> {
   try {
     const raw = readFile(path);
-    const json = JSON.parse(raw); // 파싱 실패 가능
-    return validate(json);        // 검증 실패 가능
+    const json = JSON.parse(raw); // parsing can fail
+    return validate(json);        // validation can fail
   } catch (e) {
-    // 어디서 실패했는지 알기 어려움
+    // hard to tell where the failure occurred
     console.error(e);
     throw e;
   }
 }
 ```
 
-**문제점:**
-- `catch`의 `e`는 `unknown` 타입 — 뭔지 모름
-- 함수 시그니처에 "이 함수는 에러를 던질 수 있다"는 정보가 없음
-- 에러를 처리했는지 안 했는지 컴파일러가 강제하지 않음
+**The problems:**
+- `e` in `catch` is of type `unknown` — you don't know what you got
+- The function signature carries no information that "this function can throw"
+- The compiler doesn't enforce that errors must be handled
 
-### Rust의 Result\<T, E\>
+### Rust's Result\<T, E\>
 
-[`Result<T, E>`](/glossary/#에러-처리)는 성공(`Ok(T)`) 또는 실패(`Err(E)`)를 타입으로 표현합니다. 함수 시그니처에 에러 가능성이 명시되어, 컴파일러가 처리를 강제합니다.
+[`Result<T, E>`](/glossary/#에러-처리) represents either success (`Ok(T)`) or failure (`Err(E)`) as a type. The function signature makes the possibility of error explicit, and the compiler forces you to handle it.
 
 ```rust
 use std::fs;
 use std::io;
 use serde_json;
 
-// 함수 시그니처에 에러 타입이 명시됨
+// error type is explicit in the function signature
 fn read_file(path: &str) -> Result<String, io::Error> {
-    fs::read_to_string(path) // Result<String, io::Error> 반환
+    fs::read_to_string(path) // returns Result<String, io::Error>
 }
 
 fn parse_json(content: &str) -> Result<serde_json::Value, serde_json::Error> {
     serde_json::from_str(content)
 }
 
-// ? 연산자: 에러면 즉시 반환, 성공이면 값을 꺼냄
+// ? operator: returns Err immediately on failure, unwraps the value on success
 fn process_data(path: &str) -> Result<Data, Box<dyn std::error::Error>> {
-    let raw = read_file(path)?;       // 실패하면 io::Error 반환
-    let json = parse_json(&raw)?;     // 실패하면 serde_json::Error 반환
-    let data = validate(json)?;       // 실패하면 ValidationError 반환
+    let raw = read_file(path)?;       // returns io::Error on failure
+    let json = parse_json(&raw)?;     // returns serde_json::Error on failure
+    let data = validate(json)?;       // returns ValidationError on failure
     Ok(data)
 }
 
-// 호출부에서 반드시 처리
+// caller must handle the result
 match process_data("config.json") {
     Ok(data) => println!("Loaded: {:?}", data),
     Err(e) => eprintln!("Error: {}", e),
 }
 
-// 또는 짧게
+// or shorter
 let data = process_data("config.json").expect("Failed to load config");
 ```
 
-### [`?` 연산자](/glossary/#unwrap-vs-expect-vs-): try/catch 체이닝의 깔끔한 대안
+### [The `?` Operator](/glossary/#unwrap-vs-expect-vs-): A Cleaner Alternative to Chained try/catch
 
 ```typescript
-// TypeScript — 중첩 try/catch
+// TypeScript — nested try/catch
 async function loadConfig(): Promise<Config> {
   let raw: string;
   try {
@@ -468,32 +468,32 @@ async function loadConfig(): Promise<Config> {
 ```
 
 ```rust
-// Rust — ? 연산자로 깔끔하게
+// Rust — clean with the ? operator
 async fn load_config() -> Result<Config, AppError> {
-    let raw = fs::read_to_string("config.json")?;  // 실패 시 즉시 Err 반환
+    let raw = fs::read_to_string("config.json")?;  // returns Err immediately on failure
     let parsed: serde_json::Value = serde_json::from_str(&raw)?;
     let config = validate_config(parsed)?;
     Ok(config)
 }
 ```
 
-### 대응 관계 정리
+### Mapping the Concepts
 
-| TypeScript | Rust | 의미 |
-|-----------|------|------|
-| `try { ... }` | `Result<T, E>` | 실패 가능 연산 |
-| `throw new Error(...)` | `Err(MyError::...)` | 에러 반환 |
-| 성공 값 반환 | `Ok(value)` | 성공 값 래핑 |
-| `catch (e)` | `match res { Err(e) => ... }` | 에러 처리 |
-| `finally` | `Drop` trait (자동 정리) | 정리 코드 |
-| 에러 전파 | 수동 `throw` | `?` 연산자 |
-| 에러 타입 | 없음 (런타임에 알게 됨) | 컴파일 타임에 명시 |
+| TypeScript | Rust | Meaning |
+|-----------|------|---------|
+| `try { ... }` | `Result<T, E>` | operation that can fail |
+| `throw new Error(...)` | `Err(MyError::...)` | return an error |
+| return success value | `Ok(value)` | wrap a success value |
+| `catch (e)` | `match res { Err(e) => ... }` | handle an error |
+| `finally` | `Drop` trait (automatic cleanup) | cleanup code |
+| propagate error | manual `throw` | `?` operator |
+| error type | none (discovered at runtime) | explicit at compile time |
 
 ---
 
 ## 2-6. async/await
 
-### TypeScript의 비동기
+### TypeScript's Async
 
 ```typescript
 // TypeScript + Node.js
@@ -510,14 +510,14 @@ async function main() {
   console.log(user.name);
 }
 
-// Promise.all — 병렬 실행
+// Promise.all — parallel execution
 const [user, posts] = await Promise.all([
   fetchUser(1),
   fetchPosts(1),
 ]);
 ```
 
-### Rust의 비동기 (Tokio 런타임)
+### Rust's Async (Tokio runtime)
 
 ```rust
 // Rust + Tokio + reqwest
@@ -527,51 +527,51 @@ use reqwest;
 async fn fetch_user(id: u32) -> Result<User, reqwest::Error> {
     let url = format!("http://api/users/{}", id);
     let user = reqwest::get(&url)
-        .await?           // .await로 Future를 실행
+        .await?           // .await executes the Future
         .json::<User>()
         .await?;
     Ok(user)
 }
 
-#[tokio::main]  // main 함수를 비동기로 만드는 매크로
+#[tokio::main]  // macro that makes main async
 async fn main() {
     let user = fetch_user(1).await.expect("Failed to fetch user");
     println!("{}", user.name);
 }
 
-// 병렬 실행 — tokio::join!
+// parallel execution — tokio::join!
 let (user, posts) = tokio::join!(
     fetch_user(1),
     fetch_posts(1),
 );
 ```
 
-### Promise vs Future
+### Promise vs. Future
 
-| 개념 | TypeScript | Rust |
-|------|-----------|------|
-| 비동기 타입 | `Promise<T>` | `Future<Output = T>` |
-| 비동기 함수 | `async function` | `async fn` |
-| 기다리기 | `await` | `.await` |
-| 즉시 실행 | O (생성 시 실행) | X (폴링될 때 실행) |
-| 런타임 | Node.js (내장) | Tokio, async-std 등 (선택) |
-| 병렬 실행 | `Promise.all()` | `tokio::join!()` |
-| 에러 처리 | `try/catch` | `?` + `Result` |
+| Concept | TypeScript | Rust |
+|---------|-----------|------|
+| Async type | `Promise<T>` | `Future<Output = T>` |
+| Async function | `async function` | `async fn` |
+| Awaiting | `await` | `.await` |
+| Eager execution | Yes (starts on creation) | No (only runs when polled) |
+| Runtime | Node.js (built-in) | Tokio, async-std, etc. (your choice) |
+| Parallel execution | `Promise.all()` | `tokio::join!()` |
+| Error handling | `try/catch` | `?` + `Result` |
 
-**중요한 차이**: JavaScript의 `Promise`는 생성되자마자 실행을 시작합니다. Rust의 `Future`는 `.await`로 폴링될 때까지 아무것도 하지 않습니다(lazy evaluation).
+**An important difference**: JavaScript's `Promise` starts executing as soon as it's created. Rust's `Future` does nothing until it's polled with `.await` (lazy evaluation).
 
 ```rust
-// Rust에서 .await를 빠뜨리면 아무 일도 안 일어남
-let future = fetch_user(1); // Future 생성, 아직 실행 안 됨
-// future를 사용하지 않으면 컴파일러가 경고를 줌
-let user = fetch_user(1).await?; // 이래야 실제로 실행됨
+// In Rust, forgetting .await means nothing happens
+let future = fetch_user(1); // Future is created, not yet running
+// if future is unused, the compiler will warn you
+let user = fetch_user(1).await?; // this is what actually runs it
 ```
 
 ---
 
-## 2-7. 제네릭
+## 2-7. Generics
 
-### TypeScript 제네릭
+### TypeScript Generics
 
 ```typescript
 // TypeScript
@@ -579,25 +579,25 @@ function identity<T>(value: T): T {
   return value;
 }
 
-// 제약 조건
+// constraints
 function getLength<T extends { length: number }>(value: T): number {
   return value.length;
 }
 
-// 제네릭 인터페이스
+// generic interface
 interface Repository<T, ID> {
   findById(id: ID): Promise<T | null>;
   save(entity: T): Promise<T>;
   delete(id: ID): Promise<void>;
 }
 
-// 여러 제약
+// multiple constraints
 function merge<T extends object, U extends object>(a: T, b: U): T & U {
   return { ...a, ...b };
 }
 ```
 
-### Rust 제네릭
+### Rust Generics
 
 ```rust
 // Rust
@@ -605,21 +605,21 @@ fn identity<T>(value: T) -> T {
     value
 }
 
-// 제약 조건: trait bound
+// constraints: trait bounds
 fn get_length<T: HasLength>(value: T) -> usize {
     value.len()
 }
 
-// 또는 where 절 (가독성 좋음)
+// or where clause (more readable)
 fn process<T, E>(value: T) -> Result<String, E>
 where
-    T: Display + Clone,  // T는 Display와 Clone을 구현해야 함
+    T: Display + Clone,  // T must implement Display and Clone
     E: std::error::Error,
 {
     Ok(format!("{}", value))
 }
 
-// 제네릭 struct
+// generic struct
 struct Repository<T> {
     items: Vec<T>,
 }
@@ -639,17 +639,17 @@ impl<T: Clone> Repository<T> {
 }
 ```
 
-### 제약 조건 비교
+### Constraint Comparison
 
-| TypeScript | Rust | 의미 |
-|-----------|------|------|
-| `<T extends Type>` | `<T: Trait>` | T는 Trait을 구현해야 함 |
-| `<T extends A & B>` | `<T: A + B>` | T는 A와 B 모두 구현 |
-| `keyof T` | 없음 (다른 방식으로) | 키 타입 추출 |
-| `ReturnType<F>` | 없음 (type inference) | 반환 타입 추출 |
-| `Partial<T>` | `Option<T>` 필드 수동 | 선택적 필드 |
+| TypeScript | Rust | Meaning |
+|-----------|------|---------|
+| `<T extends Type>` | `<T: Trait>` | T must implement Trait |
+| `<T extends A & B>` | `<T: A + B>` | T must implement both A and B |
+| `keyof T` | Not available (different approach) | Extract key types |
+| `ReturnType<F>` | Not available (type inference) | Extract return type |
+| `Partial<T>` | Manual `Option<T>` fields | Optional fields |
 
-### 실용 예제: 제네릭 캐시
+### Practical Example: Generic Cache
 
 ```typescript
 // TypeScript
@@ -695,19 +695,19 @@ let mut cache: Cache<String, User> = Cache::new();
 cache.set("user:1".to_string(), user);
 ```
 
-> Rust의 `HashMap` 키로 쓰이려면 `Eq + Hash` trait을 구현해야 합니다. TypeScript의 `Map`은 어떤 값이든 키로 쓸 수 있지만, Rust는 컴파일 타임에 이 제약을 강제합니다.
+> To use a type as a `HashMap` key in Rust, it must implement `Eq + Hash`. TypeScript's `Map` accepts any value as a key, but Rust enforces this constraint at compile time.
 
 ---
 
-## 요약
+## Summary
 
-- Rust의 기본 변수는 불변이며 `mut`로 변경 가능하다.
-- 함수 반환은 마지막 표현식이 기본이다.
-- `struct`와 `trait`로 데이터/동작을 분리한다.
-- `Option`과 `Result`가 null/예외를 대체한다.
-- async/await는 런타임(Tokio 등)이 필요하다.
+- Rust variables are immutable by default; use `mut` to allow mutation.
+- Functions return the last expression by default.
+- `struct` and `trait` separate data from behavior.
+- `Option` and `Result` replace null and exceptions.
+- async/await requires a runtime (such as Tokio).
 
-## 핵심 코드
+## Core Code
 
 ```rust runnable
 fn add(a: i32, b: i32) -> i32 {
@@ -720,18 +720,18 @@ fn main() {
 }
 ```
 
-## 자주 하는 실수
+## Common Mistakes
 
-- `let`이 기본 불변이라는 사실을 잊고 재할당한다.
-- 함수 마지막 줄에 세미콜론을 붙여 반환값이 사라진다.
-- `Option`을 바로 꺼내 쓰려다 컴파일 에러를 본다.
+- Forgetting that `let` is immutable by default and trying to reassign.
+- Adding a semicolon to the last line of a function, causing the return value to disappear.
+- Trying to use an `Option` value directly and hitting a compile error.
 
-## 연습
+## Exercises
 
-1. TypeScript의 `try/catch` 코드를 `Result`로 바꿔보자.
-2. 간단한 `struct`와 `impl`을 만들어 메서드를 추가해보자.
+1. Convert a TypeScript `try/catch` block to use `Result`.
+2. Create a simple `struct` with an `impl` block and add a method to it.
 
-## 챕터 연결
+## Chapter Connections
 
-이전 챕터에서는 멘탈 모델 차이를 정리했다.
-다음 챕터에서는 Ownership과 Borrowing을 본격적으로 다룬다.
+The previous chapter covered the differences in mental models.
+The next chapter dives into Ownership and Borrowing in earnest.

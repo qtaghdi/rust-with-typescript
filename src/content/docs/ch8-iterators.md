@@ -1,24 +1,24 @@
 ---
-title: "Ch.8 — 이터레이터 & 클로저"
-description: "Array 메서드 체이닝 vs Rust 이터레이터 — 제로코스트 추상화의 힘"
+title: "Ch.8 — Iterators & Closures"
+description: "Array method chaining vs Rust iterators — the power of zero-cost abstractions"
 ---
 
-TypeScript에서 `array.filter().map().reduce()`를 즐겨 쓰신다면, Rust의 이터레이터가 굉장히 친숙하게 느껴질 겁니다. 문법만 조금 다를 뿐, 개념은 거의 같습니다. 그리고 Rust 이터레이터는 **제로코스트 추상화(zero-cost abstraction)** 덕분에 중간 배열을 전혀 만들지 않습니다. 어떻게 그게 가능한지 함께 알아봅시다.
+If you enjoy writing `array.filter().map().reduce()` in TypeScript, Rust's iterators will feel very familiar. The syntax is a little different, but the concept is nearly identical. And thanks to **zero-cost abstractions**, Rust iterators never create intermediate arrays. Let's find out how that's possible.
 
 ---
 
-## 1. 클로저 심화
+## 1. Closures In Depth
 
-### TypeScript 화살표 함수 vs Rust 클로저
+### TypeScript Arrow Functions vs Rust Closures
 
-TypeScript에서 화살표 함수는 매우 익숙합니다.
+Arrow functions are very familiar in TypeScript.
 
 ```typescript
 const double = (x: number) => x * 2;
 const greet = (name: string) => `Hello, ${name}!`;
 ```
 
-Rust의 클로저는 `|파라미터| 표현식` 문법을 사용합니다. `||` 안에 매개변수를 넣는다고 기억하세요.
+Rust closures use the `|parameter| expression` syntax. Think of it as putting parameters inside `||`.
 
 ```rust
 let double = |x: i32| x * 2;
@@ -28,27 +28,27 @@ println!("{}", double(5));   // 10
 println!("{}", greet("Rust")); // Hello, Rust!
 ```
 
-여러 줄이 필요하면 중괄호로 감싸면 됩니다.
+If you need multiple lines, wrap them in curly braces.
 
 ```rust
 let process = |x: i32| {
     let doubled = x * 2;
     let added = doubled + 10;
-    added // 마지막 표현식이 반환값
+    added // the last expression is the return value
 };
 
 println!("{}", process(5)); // 20
 ```
 
-Rust 클로저는 타입 추론이 강력해서, 대부분의 경우 타입을 생략할 수 있습니다.
+Rust closures have powerful type inference, so types can usually be omitted.
 
 ```rust
 let numbers = vec![1, 2, 3, 4, 5];
 let doubled: Vec<i32> = numbers.iter().map(|x| x * 2).collect();
-// |x: &i32| (*x) * 2 라고 쓰지 않아도 컴파일러가 알아서 추론합니다
+// No need to write |x: &i32| (*x) * 2 — the compiler infers it
 ```
 
-### 실행해보기
+### Try It Out
 
 ```rust runnable
 fn main() {
@@ -60,36 +60,36 @@ fn main() {
 
 ---
 
-### 환경 캡처: move vs borrow
+### Environment Capture: move vs borrow
 
-TypeScript의 화살표 함수는 외부 변수를 **항상 자동으로** 캡처합니다.
+TypeScript arrow functions **always automatically** capture outer variables.
 
 ```typescript
 const multiplier = 3;
-const multiply = (x: number) => x * multiplier; // multiplier를 자동 캡처
+const multiply = (x: number) => x * multiplier; // captures multiplier automatically
 console.log(multiply(5)); // 15
 ```
 
-Rust는 기본적으로 **빌림(borrow)** 으로 캡처하지만, 필요할 때 `move` 키워드로 소유권을 클로저 안으로 이동시킬 수 있습니다.
+Rust captures by **borrow** by default, but you can use the `move` keyword to transfer ownership into the closure when needed.
 
 ```rust
 fn main() {
     let multiplier = 3;
 
-    // 기본: 참조로 캡처 (borrow)
+    // default: capture by reference (borrow)
     let multiply = |x| x * multiplier;
     println!("{}", multiply(5)); // 15
-    println!("{}", multiplier);  // multiplier는 여전히 사용 가능
+    println!("{}", multiplier);  // multiplier is still usable
 
-    // move: 소유권을 클로저로 이동
+    // move: transfer ownership into the closure
     let name = String::from("Alice");
     let greet = move || format!("Hello, {}!", name);
-    // println!("{}", name); // 오류! name의 소유권이 클로저로 이동했습니다
+    // println!("{}", name); // error! ownership of name has moved into the closure
     println!("{}", greet()); // Hello, Alice!
 }
 ```
 
-`move`가 꼭 필요한 대표적인 상황은 **스레드(thread)** 입니다. 스레드는 클로저가 캡처한 값의 생명주기를 보장할 수 없기 때문에, 소유권을 넘겨야 합니다.
+The most common scenario where `move` is essential is **threads**. Since a thread cannot guarantee the lifetime of values captured by a closure, ownership must be transferred.
 
 ```rust
 use std::thread;
@@ -97,9 +97,9 @@ use std::thread;
 fn main() {
     let data = vec![1, 2, 3];
 
-    // move 없이는 컴파일 오류
+    // compile error without move
     let handle = thread::spawn(move || {
-        println!("스레드에서 데이터: {:?}", data);
+        println!("data in thread: {:?}", data);
     });
 
     handle.join().unwrap();
@@ -108,48 +108,48 @@ fn main() {
 
 ---
 
-### FnOnce / FnMut / Fn 트레이트
+### FnOnce / FnMut / Fn Traits
 
-Rust의 클로저는 캡처 방식에 따라 세 가지 트레이트를 구현합니다. TypeScript에는 이런 구분이 없지만, 개념적으로는 이해할 수 있습니다.
+Rust closures implement one of three traits depending on how they capture their environment. TypeScript has no such distinction, but the concept is understandable.
 
-| 트레이트 | 호출 가능 횟수 | 캡처 방식 | TypeScript 비유 |
-|---------|------------|---------|--------------|
-| `FnOnce` | 한 번만 | 소유권 이동 | 일회용 콜백 |
-| `FnMut` | 여러 번 (값 변경 가능) | 가변 빌림 | 상태를 수정하는 콜백 |
-| `Fn` | 여러 번 | 불변 빌림 | 순수 함수 |
+| Trait | Call count | Capture mode | TypeScript analogy |
+|-------|-----------|-------------|-------------------|
+| `FnOnce` | Once only | Ownership move | Single-use callback |
+| `FnMut` | Multiple times (can mutate) | Mutable borrow | Stateful callback |
+| `Fn` | Multiple times | Immutable borrow | Pure function |
 
 ```rust
 fn call_once<F: FnOnce()>(f: F) {
-    f(); // 한 번만 호출 가능
+    f(); // can only be called once
 }
 
 fn call_multiple<F: Fn()>(f: F) {
     f();
-    f(); // 여러 번 호출 가능
+    f(); // can be called multiple times
 }
 
 fn main() {
     let name = String::from("Alice");
 
-    // FnOnce: 소유권을 소비하는 클로저
+    // FnOnce: closure that consumes ownership
     let consume = || {
-        let owned = name; // name의 소유권을 가져옴
-        println!("이름: {}", owned);
+        let owned = name; // takes ownership of name
+        println!("name: {}", owned);
     };
     call_once(consume);
-    // call_once(consume); // 오류! 이미 소비됨
+    // call_once(consume); // error! already consumed
 
-    // FnMut: 내부 상태를 변경하는 클로저
+    // FnMut: closure that mutates internal state
     let mut count = 0;
     let mut increment = || {
         count += 1;
-        println!("카운트: {}", count);
+        println!("count: {}", count);
     };
     increment();
     increment();
-    // count는 이제 2
+    // count is now 2
 
-    // Fn: 순수하게 읽기만 하는 클로저
+    // Fn: closure that only reads
     let base = 10;
     let add_base = |x| x + base;
     println!("{}", add_base(5));  // 15
@@ -159,21 +159,21 @@ fn main() {
 
 ---
 
-## 2. 이터레이터 기초
+## 2. Iterator Basics
 
-### Iterator 트레이트와 next() 메서드
+### The Iterator Trait and the next() Method
 
-Rust의 이터레이터는 `Iterator` 트레이트를 구현한 모든 타입입니다. 핵심은 단 하나의 메서드, `next()`입니다.
+A Rust iterator is any type that implements the `Iterator` trait. The core is a single method: `next()`.
 
 ```rust
 pub trait Iterator {
     type Item;
     fn next(&mut self) -> Option<Self::Item>;
-    // 나머지 수십 개의 메서드는 next()를 바탕으로 자동 구현됨
+    // dozens of other methods are automatically implemented on top of next()
 }
 ```
 
-직접 `next()`를 호출할 수도 있습니다.
+You can call `next()` directly.
 
 ```rust
 fn main() {
@@ -187,7 +187,7 @@ fn main() {
 }
 ```
 
-TypeScript의 이터레이터 프로토콜과 거의 동일한 구조입니다.
+This is nearly identical in structure to TypeScript's iterator protocol.
 
 ```typescript
 const numbers = [1, 2, 3];
@@ -201,35 +201,35 @@ console.log(iter.next()); // { value: undefined, done: true }
 
 ---
 
-### iter() / into_iter() / iter_mut() 차이
+### Differences Between iter() / into_iter() / iter_mut()
 
-세 메서드는 비슷해 보이지만 중요한 차이가 있습니다.
+The three methods look similar but have important differences.
 
 ```rust
 fn main() {
     let mut numbers = vec![1, 2, 3, 4, 5];
 
-    // iter(): 불변 참조(&T)로 이터레이션 — 원본 유지
+    // iter(): iterates by immutable reference (&T) — original is preserved
     for n in numbers.iter() {
         print!("{} ", n); // n: &i32
     }
-    println!(); // numbers는 여전히 사용 가능
+    println!(); // numbers is still usable
 
-    // iter_mut(): 가변 참조(&mut T)로 이터레이션 — 값 수정 가능
+    // iter_mut(): iterates by mutable reference (&mut T) — values can be modified
     for n in numbers.iter_mut() {
-        *n *= 2; // n: &mut i32, 역참조로 값 수정
+        *n *= 2; // n: &mut i32, dereference to modify value
     }
     println!("{:?}", numbers); // [2, 4, 6, 8, 10]
 
-    // into_iter(): 소유권(T)을 가져감 — 원본 소비
+    // into_iter(): takes ownership (T) — original is consumed
     for n in numbers.into_iter() {
-        print!("{} ", n); // n: i32 (소유)
+        print!("{} ", n); // n: i32 (owned)
     }
-    // println!("{:?}", numbers); // 오류! numbers는 이미 소비됨
+    // println!("{:?}", numbers); // error! numbers has already been consumed
 }
 ```
 
-### 실행해보기
+### Try It Out
 
 ```rust runnable
 fn main() {
@@ -239,53 +239,53 @@ fn main() {
 }
 ```
 
-| 메서드 | 요소 타입 | 원본 사용 가능? | 용도 |
-|-------|---------|-------------|-----|
-| `iter()` | `&T` | 예 | 읽기 전용 순회 |
-| `iter_mut()` | `&mut T` | 예 (수정 후) | 값 수정 |
-| `into_iter()` | `T` | 아니오 | 소유권 이전 |
+| Method | Element type | Original usable? | Use case |
+|--------|------------|-----------------|----------|
+| `iter()` | `&T` | Yes | Read-only iteration |
+| `iter_mut()` | `&mut T` | Yes (after modification) | Modifying values |
+| `into_iter()` | `T` | No | Transfer ownership |
 
 ---
 
-### 지연 평가 (Lazy Evaluation)
+### Lazy Evaluation
 
-TypeScript 배열 메서드는 **즉시 평가(eager evaluation)** 입니다. 각 단계마다 새 배열을 생성합니다.
+TypeScript array methods use **eager evaluation** — each step creates a new array.
 
 ```typescript
 const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-// 매 단계마다 새 배열 생성: [2,4,6,8,10] → [4,8] → [4]
+// each step creates a new array: [2,4,6,8,10] → [4,8] → [4]
 const result = numbers
-  .filter(x => x % 2 === 0) // 새 배열: [2, 4, 6, 8, 10]
-  .map(x => x * 2)          // 새 배열: [4, 8, 12, 16, 20]
-  .slice(0, 2);              // 새 배열: [4, 8]
+  .filter(x => x % 2 === 0) // new array: [2, 4, 6, 8, 10]
+  .map(x => x * 2)          // new array: [4, 8, 12, 16, 20]
+  .slice(0, 2);              // new array: [4, 8]
 
 console.log(result); // [4, 8]
 ```
 
-Rust 이터레이터는 **지연 평가(lazy evaluation)** 입니다. `.collect()` 같은 소비 어댑터를 호출하기 전까지는 아무것도 실행되지 않습니다.
+Rust iterators use **lazy evaluation** — nothing executes until a consuming adapter like `.collect()` is called.
 
 ```rust
 fn main() {
     let numbers = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-    // 이 시점에서는 아무것도 실행되지 않음
+    // nothing executes at this point
     let lazy_chain = numbers.iter()
         .filter(|&&x| x % 2 == 0)
         .map(|&x| x * 2)
         .take(2);
 
-    // collect()를 호출할 때 비로소 실행됨
+    // execution only happens when collect() is called
     let result: Vec<i32> = lazy_chain.collect();
     println!("{:?}", result); // [4, 8]
 }
 ```
 
-지연 평가 덕분에 중간 컬렉션이 전혀 생성되지 않습니다. 요소 하나씩 파이프라인을 통과시키는 방식입니다.
+Thanks to lazy evaluation, no intermediate collections are created at all. Elements pass through the pipeline one at a time.
 
 ---
 
-## 3. 이터레이터 어댑터 (TypeScript Array 메서드와 1:1 비교)
+## 3. Iterator Adapters (1:1 Comparison with TypeScript Array Methods)
 
 ### map
 
@@ -335,7 +335,7 @@ const found = [1, 2, 3, 4, 5].find(x => x > 3);
 let found = vec![1, 2, 3, 4, 5]
     .iter()
     .find(|&&x| x > 3);
-// Some(&4) 또는 None
+// Some(&4) or None
 println!("{:?}", found); // Some(4)
 ```
 
@@ -399,7 +399,7 @@ for (index, item) in arr.iter().enumerate() {
 ### zip
 
 ```typescript
-// TypeScript (zip은 기본 내장 없음, 직접 구현)
+// TypeScript (no built-in zip, must implement manually)
 const names = ["Alice", "Bob", "Charlie"];
 const scores = [95, 87, 92];
 const paired = names.map((name, i) => [name, scores[i]]);
@@ -438,30 +438,30 @@ let words: Vec<&str> = sentences.iter()
 
 ---
 
-## 4. 소비 어댑터 (collect, sum, count, fold)
+## 4. Consuming Adapters (collect, sum, count, fold)
 
-이터레이터 어댑터는 새 이터레이터를 반환하지만, **소비 어댑터(consuming adapter)** 는 이터레이터를 소비하고 최종 값을 반환합니다.
+Iterator adapters return new iterators, but **consuming adapters** consume the iterator and return a final value.
 
 ### collect()
 
-`collect()`는 이터레이터를 컬렉션으로 변환합니다. 어떤 타입으로 수집할지 명시해야 합니다.
+`collect()` converts an iterator into a collection. You must specify what type to collect into.
 
 ```rust
 fn main() {
     let numbers = vec![1, 2, 3, 4, 5];
 
-    // 타입 어노테이션으로 명시
+    // specify with type annotation
     let doubled: Vec<i32> = numbers.iter().map(|&x| x * 2).collect();
 
-    // 터보피시(turbofish) 문법으로 명시
+    // specify with turbofish syntax
     let doubled = numbers.iter().map(|&x| x * 2).collect::<Vec<i32>>();
 
-    // 와일드카드로 일부만 명시
+    // specify partially with a wildcard
     let doubled = numbers.iter().map(|&x| x * 2).collect::<Vec<_>>();
 
     println!("{:?}", doubled); // [2, 4, 6, 8, 10]
 
-    // HashMap으로 수집
+    // collect into a HashMap
     use std::collections::HashMap;
     let map: HashMap<&str, i32> = vec![("a", 1), ("b", 2), ("c", 3)]
         .into_iter()
@@ -483,7 +483,7 @@ const count = [1, 2, 3].length; // 3
 let total: i32 = vec![1, 2, 3, 4, 5].iter().sum(); // 15
 let count = vec![1, 2, 3].iter().count();           // 3
 
-// 조건부 합계
+// conditional sum
 let even_sum: i32 = vec![1, 2, 3, 4, 5]
     .iter()
     .filter(|&&x| x % 2 == 0)
@@ -491,14 +491,14 @@ let even_sum: i32 = vec![1, 2, 3, 4, 5]
 println!("{}", even_sum); // 6 (2 + 4)
 ```
 
-### fold() — TypeScript reduce와 비교
+### fold() — Compared to TypeScript reduce
 
 ```typescript
 // TypeScript reduce
 const numbers = [1, 2, 3, 4, 5];
 const product = numbers.reduce((acc, x) => acc * x, 1); // 120
 
-// 문자열 연결
+// string concatenation
 const joined = ["a", "b", "c"].reduce((acc, x) => acc + x, ""); // "abc"
 ```
 
@@ -508,7 +508,7 @@ let numbers = vec![1, 2, 3, 4, 5];
 let product = numbers.iter().fold(1, |acc, &x| acc * x);
 println!("{}", product); // 120
 
-// 문자열 연결
+// string concatenation
 let joined = vec!["a", "b", "c"]
     .iter()
     .fold(String::new(), |mut acc, &x| {
@@ -517,20 +517,20 @@ let joined = vec!["a", "b", "c"]
     });
 println!("{}", joined); // "abc"
 
-// 더 관용적인 방법
+// more idiomatic way
 let joined = vec!["a", "b", "c"].join("");
 println!("{}", joined); // "abc"
 ```
 
-`fold`는 `reduce`와 거의 동일하지만, 초기값(`init`)을 항상 제공해야 한다는 점이 다릅니다. TypeScript의 `reduce`는 초기값 없이도 호출할 수 있지만, 빈 배열에서 오류가 발생할 수 있습니다. Rust의 `fold`는 항상 안전합니다.
+`fold` is almost identical to `reduce`, but you must always provide an initial value (`init`). TypeScript's `reduce` can be called without an initial value, but risks an error on an empty array. Rust's `fold` is always safe.
 
 ---
 
-## 5. 이터레이터 체이닝 실전 예제
+## 5. Iterator Chaining in Practice
 
-실제 코드에서 자주 보이는 패턴을 비교해 봅시다.
+Let's compare patterns commonly seen in real code.
 
-### 예제: 사용자 목록 필터링
+### Example: Filtering a User List
 
 ```typescript
 // TypeScript
@@ -549,7 +549,7 @@ const users: User[] = [
   { name: "Frank", age: 19, active: true },
 ];
 
-// 활성 사용자 중 성인만, 이름 순 정렬, 상위 3명의 이름 추출
+// among active users, adults only, sorted by name, extract top 3 names
 const result = users
   .filter(u => u.active && u.age >= 18)
   .sort((a, b) => a.name.localeCompare(b.name))
@@ -578,10 +578,10 @@ fn main() {
         User { name: "Frank".to_string(), age: 19, active: true },
     ];
 
-    // 정렬 먼저 (sort는 이터레이터 체인 밖에서)
+    // sort first (sort happens outside the iterator chain)
     users.sort_by(|a, b| a.name.cmp(&b.name));
 
-    // 활성 성인 사용자 상위 3명의 이름 추출
+    // extract top 3 names from active adult users
     let result: Vec<&str> = users.iter()
         .filter(|u| u.active && u.age >= 18)
         .take(3)
@@ -592,51 +592,51 @@ fn main() {
 }
 ```
 
-### 성능 비교: 중간 Vec이 생성되지 않는 이유
+### Performance Comparison: Why No Intermediate Vecs Are Created
 
-TypeScript의 배열 메서드 체인은 각 단계마다 새 배열을 힙에 할당합니다.
-
-```
-TypeScript 체이닝:
-[1..100] → filter → [새 배열: 짝수 50개] → map → [새 배열: 변환된 50개] → slice → [새 배열: 5개]
-            ↑ 힙 할당            ↑ 힙 할당                                    ↑ 힙 할당
-```
-
-Rust 이터레이터 체인은 요소를 하나씩 파이프라인에 흘려보냅니다.
+TypeScript's array method chains allocate a new array on the heap at every step.
 
 ```
-Rust 이터레이터 체이닝:
-요소 1 → filter? No  → 버림
-요소 2 → filter? Yes → map → take? count=1 → collect에 추가
-요소 3 → filter? No  → 버림
-요소 4 → filter? Yes → map → take? count=2 → collect에 추가
+TypeScript chaining:
+[1..100] → filter → [new array: 50 even numbers] → map → [new array: 50 transformed] → slice → [new array: 5 items]
+            ↑ heap alloc             ↑ heap alloc                                          ↑ heap alloc
+```
+
+Rust iterator chains pass elements through the pipeline one at a time.
+
+```
+Rust iterator chaining:
+element 1 → filter? No  → discarded
+element 2 → filter? Yes → map → take? count=1 → added to collect
+element 3 → filter? No  → discarded
+element 4 → filter? Yes → map → take? count=2 → added to collect
 ...
 ```
 
 ```rust
 fn main() {
-    // 10만 개 숫자에서 짝수만 두 배로, 상위 5개 추출
+    // from 100,000 numbers, double the even ones, take the top 5
     let result: Vec<i32> = (1..=100_000)
         .filter(|x| x % 2 == 0)
         .map(|x| x * 2)
         .take(5)
         .collect();
 
-    // 중간 배열 없음! 메모리는 최종 결과 5개분만 사용
+    // no intermediate arrays! memory used is only for the final 5 results
     println!("{:?}", result); // [4, 8, 12, 16, 20]
 }
 ```
 
-`take(5)`가 5개를 수집하는 순간 이터레이터 전체가 즉시 종료됩니다. 나머지 99,990개는 평가조차 되지 않습니다. 이것이 지연 평가의 강력함입니다.
+The moment `take(5)` collects 5 items, the entire iterator terminates immediately. The remaining 99,990 elements are never even evaluated. This is the power of lazy evaluation.
 
 ---
 
-## 6. 커스텀 이터레이터 만들기
+## 6. Building Custom Iterators
 
-직접 `Iterator` 트레이트를 구현해 봅시다. 피보나치 수열 이터레이터를 만들겠습니다.
+Let's implement the `Iterator` trait ourselves. We'll create a Fibonacci sequence iterator.
 
 ```typescript
-// TypeScript — 제너레이터로 구현
+// TypeScript — implemented with a generator
 function* fibonacci(): Generator<number> {
     let [a, b] = [0, 1];
     while (true) {
@@ -651,7 +651,7 @@ console.log(first10); // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 ```
 
 ```rust
-// Rust — Iterator 트레이트 직접 구현
+// Rust — directly implementing the Iterator trait
 struct Fibonacci {
     a: u64,
     b: u64,
@@ -671,18 +671,18 @@ impl Iterator for Fibonacci {
         let new_b = self.a + self.b;
         self.a = self.b;
         self.b = new_b;
-        Some(next) // 무한 이터레이터: None을 반환하지 않음
+        Some(next) // infinite iterator: never returns None
     }
 }
 
 fn main() {
     let fib = Fibonacci::new();
 
-    // Iterator 트레이트를 구현했으므로 모든 어댑터를 바로 사용 가능!
+    // since Iterator is implemented, all adapters are immediately available!
     let first10: Vec<u64> = fib.take(10).collect();
     println!("{:?}", first10); // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
-    // 100 미만의 피보나치 수 중 짝수만
+    // even Fibonacci numbers under 100
     let even_fibs: Vec<u64> = Fibonacci::new()
         .take_while(|&x| x < 100)
         .filter(|x| x % 2 == 0)
@@ -691,27 +691,26 @@ fn main() {
 }
 ```
 
-`Iterator` 트레이트에서 `next()` 하나만 구현하면, `map`, `filter`, `take`, `fold` 등 수십 개의 메서드가 자동으로 제공됩니다. 이것이 Rust 트레이트 시스템의 강력함입니다.
+Once you implement just `next()` from the `Iterator` trait, dozens of methods including `map`, `filter`, `take`, and `fold` are provided automatically. This is the power of Rust's trait system.
 
 ---
 
-## 정리
+## Summary
 
-| 개념 | TypeScript | Rust |
-|-----|-----------|------|
-| 클로저 문법 | `(x) => x + 1` | `\|x\| x + 1` |
-| 환경 캡처 | 자동 (항상) | borrow 기본, `move`로 소유권 이전 |
-| 클로저 트레이트 | 없음 | `Fn` / `FnMut` / `FnOnce` |
-| 이터레이션 방식 | 즉시 평가 | 지연 평가 (lazy) |
-| 중간 컬렉션 | 각 단계마다 생성 | 생성 안 함 |
-| 소비 어댑터 | `.reduce()` 등 | `.collect()`, `.fold()`, `.sum()` 등 |
-| 커스텀 이터레이터 | `Symbol.iterator`, 제너레이터 | `Iterator` 트레이트 구현 |
+| Concept | TypeScript | Rust |
+|---------|-----------|------|
+| Closure syntax | `(x) => x + 1` | `\|x\| x + 1` |
+| Environment capture | Automatic (always) | borrow by default, ownership transfer with `move` |
+| Closure traits | None | `Fn` / `FnMut` / `FnOnce` |
+| Evaluation style | Eager | Lazy |
+| Intermediate collections | Created at each step | Never created |
+| Consuming adapters | `.reduce()` etc. | `.collect()`, `.fold()`, `.sum()` etc. |
+| Custom iterators | `Symbol.iterator`, generators | Implement the `Iterator` trait |
 
-Rust의 이터레이터는 TypeScript의 배열 메서드보다 문법이 조금 낯설 수 있지만, 그 원리는 동일합니다. 그리고 제로코스트 추상화 덕분에 명시적인 `for` 루프와 동일한 성능을 냅니다. 고수준의 표현력과 저수준의 성능, 두 마리 토끼를 모두 잡는 것이 Rust 이터레이터의 핵심입니다.
+Rust iterators may feel slightly unfamiliar in syntax compared to TypeScript array methods, but the underlying principle is the same. And thanks to zero-cost abstractions, they deliver the same performance as explicit `for` loops. Combining high-level expressiveness with low-level performance is the essence of Rust iterators.
 
 ---
 
-## 챕터 연결
+## Chapter Navigation
 
-이전 챕터에서 컬렉션과 소유권을 확인했다면, 이 챕터는 그 컬렉션을 효율적으로 다루는 방법을 보여줬다.
-다음 챕터에서는 trait 시스템으로 확장한다.
+After seeing collections and ownership in the previous chapter, this chapter showed how to work with those collections efficiently. The next chapter expands into the trait system.
