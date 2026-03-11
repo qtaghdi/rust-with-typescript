@@ -471,14 +471,15 @@
   cursor: not-allowed;
 }
 
-/* ── Terminal output ── */
+/* ── Terminal output (always dark, theme-independent) ── */
 .ec-runnable-output {
   margin-top: 0.5rem;
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--sl-color-hairline) 60%, transparent);
+  border: 1px solid #30363d;
   background: #0d1117;
   overflow: hidden;
   font-family: var(--sl-font-mono);
+  color-scheme: dark;
 }
 
 .ec-runnable-output-header {
@@ -523,12 +524,12 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  color: #e6edf3;
+  color: #e6edf3 !important;
 }
 
-.ec-out-stdout { color: #e6edf3; }
-.ec-out-stderr { color: #f0883e; }
-.ec-out-muted  { color: #484f58; }
+.ec-out-stdout { color: #e6edf3 !important; }
+.ec-out-stderr { color: #f0883e !important; }
+.ec-out-muted  { color: #8b949e !important; }
 
 .ec-runnable-output-footer {
   display: flex;
