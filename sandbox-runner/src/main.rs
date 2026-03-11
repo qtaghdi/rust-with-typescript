@@ -3,7 +3,7 @@ use axum::{
     extract::State,
     http::HeaderMap,
     http::StatusCode,
-    routing::post,
+    routing::{get, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -77,6 +77,7 @@ async fn main() {
     };
 
     let app = Router::new()
+        .route("/health", get(health))
         .route("/run", post(run_code))
         .with_state(state);
 
@@ -85,6 +86,10 @@ async fn main() {
     axum::serve(listener, app.into_make_service_with_connect_info::<std::net::SocketAddr>())
         .await
         .unwrap();
+}
+
+async fn health() -> StatusCode {
+    StatusCode::OK
 }
 
 async fn run_code(

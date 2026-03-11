@@ -8,6 +8,10 @@ primary_region = 'nrt'
 
 [build]
 
+[env]
+  RUNNER_COMPILE_TIMEOUT_MS = "20000"
+  RUNNER_RUN_TIMEOUT_MS = "10000"
+
 [http_service]
   internal_port = 4100
   force_https = true
