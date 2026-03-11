@@ -17,8 +17,8 @@ Thank you for your interest in contributing! Here's how to get involved.
 ```bash
 git clone https://github.com/qtaghdi/rust-with-typescript.git
 cd rust-with-typescript
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 The dev server starts at `http://localhost:4321`.
@@ -41,7 +41,7 @@ src/content/docs/
 
 1. Find the file in `src/content/docs/` (English) or `src/content/docs/ko/` (Korean)
 2. Edit the Markdown
-3. Run `npm run dev` and verify the page looks correct
+3. Run `bun run dev` and verify the page looks correct
 4. Open a PR with a brief description of what changed and why
 
 ---
@@ -69,7 +69,7 @@ fn main() {
 ```
 ````
 
-After adding runnable blocks, the build script (`scripts/generate-hashes.mjs`) must be run before serving. `npm run build` does this automatically. For local dev, run:
+After adding runnable blocks, the build script (`scripts/generate-hashes.mjs`) must be run before serving. `bun run build` does this automatically. For local dev, run:
 
 ```bash
 node scripts/generate-hashes.mjs

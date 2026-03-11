@@ -34,22 +34,22 @@ scripts/                   # Build-time scripts
 ## Local Development
 
 ```bash
-npm install
-npm run dev        # → http://localhost:4321
+bun install
+bun run dev        # → http://localhost:4321
 ```
 
 ```bash
-npm run build      # Generates code hashes + builds
-npm run preview    # Preview production build
+bun run build      # Generates code hashes + builds
+bun run preview    # Preview production build
 ```
 
 ## Commands
 
 | Command | Action |
 |:--------|:-------|
-| `npm run dev` | Start local dev server at `localhost:4321` |
-| `npm run build` | Generate hashes + production build → `./dist/` |
-| `npm run preview` | Preview the production build locally |
+| `bun run dev` | Start local dev server at `localhost:4321` |
+| `bun run build` | Generate hashes + production build → `./dist/` |
+| `bun run preview` | Preview the production build locally |
 
 ## Contributing
 

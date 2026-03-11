@@ -20,8 +20,8 @@ Contributions of all kinds are welcome — from fixing a typo to writing a whole
 ```bash
 git clone https://github.com/qtaghdi/rust-with-typescript.git
 cd rust-with-typescript
-npm install
-npm run dev   # → http://localhost:4321
+bun install
+bun run dev   # → http://localhost:4321
 ```
 
 ## Content Structure
@@ -45,7 +45,7 @@ src/content/docs/
 
 1. Open the file in `src/content/docs/` (English) or `src/content/docs/ko/` (Korean)
 2. Edit the Markdown
-3. Run `npm run dev` to preview
+3. Run `bun run dev` to preview
 4. Open a PR
 
 ## Adding a New Chapter
@@ -76,7 +76,7 @@ After adding runnable blocks, regenerate the hash file:
 node scripts/generate-hashes.mjs
 ```
 
-`npm run build` does this automatically. For local dev you need to run it manually once.
+`bun run build` does this automatically. For local dev you need to run it manually once.
 
 ## Commit Style
 
