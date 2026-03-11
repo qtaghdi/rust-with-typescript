@@ -1,7 +1,11 @@
-name = "rust-with-typescript"
+name = "qtaghdi"
 main = "dist/_worker.js/index.js"
 compatibility_date = "2026-03-11"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "dist"
+
+[[routes]]
+pattern = "qtaghdi.com/*"
+zone_name = "qtaghdi.com"
