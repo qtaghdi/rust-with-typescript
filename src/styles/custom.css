@@ -62,12 +62,16 @@
 }
 
 /* ══════════════════════════════
-   타이포그래피 & 한글 줄바꿈
+   타이포그래피
 ══════════════════════════════ */
 .sl-markdown-content {
   line-height: 1.85;
-  word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* 한국어 페이지에서만 keep-all 적용 */
+:lang(ko) .sl-markdown-content {
+  word-break: keep-all;
 }
 
 .sl-markdown-content h2 {
