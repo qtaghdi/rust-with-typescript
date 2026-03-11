@@ -15,5 +15,8 @@
     "astro": "^5.18.1",
     "expressive-code": "^0.41.7",
     "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "sass": "^1.98.0"
   }
 }

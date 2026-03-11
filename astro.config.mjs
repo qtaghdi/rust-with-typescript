@@ -22,7 +22,7 @@ export default defineConfig({
 				dark:  './src/assets/logo-dark.svg',
 				replacesTitle: false,
 			},
-			customCss: ['./src/styles/custom.css'],
+			customCss: ['./src/styles/custom.scss'],
 			head: [
 				{
 					tag: 'link',

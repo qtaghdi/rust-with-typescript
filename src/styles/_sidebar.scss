@@ -1,0 +1,61 @@
+// Logo + sidebar navigation
+
+// Site logo image
+.site-title {
+  img {
+    height: 24px !important;
+    width: auto !important;
+    object-fit: contain;
+  }
+
+  // Gradient text: Rust orange → gray → TypeScript blue
+  span {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    background: linear-gradient(90deg, #e05a3a 0%, #e05a3a 28%, #999 29%, #999 50%, #4fc1e9 51%, #4fc1e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+// Section group label
+.group-label span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+.sidebar-content {
+  // Active page
+  a[aria-current=page],
+  [aria-current=page] {
+    background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent) !important;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  // Hover
+  a:not([aria-current=page]):hover {
+    color: var(--sl-color-accent);
+    background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
+    border-radius: 6px;
+  }
+}
+
+[data-theme='light'] .sidebar-content {
+  a[aria-current=page],
+  [aria-current=page] {
+    color: var(--sl-color-accent-high) !important;
+  }
+}
+
+[data-theme='dark'] .sidebar-content {
+  a:not([aria-current=page]):hover {
+    color: var(--sl-color-accent-high);
+  }
+}

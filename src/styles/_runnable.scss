@@ -1,0 +1,129 @@
+// Runnable code blocks — Run button + terminal output panel
+
+// Header layout: push Run button left of the EC copy button
+.ec-runnable > .header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.3rem calc(32px + 14px) 0.3rem 0.5rem;
+}
+
+.ec-runnable-actions {
+  display: flex;
+  gap: 0.25rem;
+  position: static;
+  margin: 0;
+}
+
+// Run button
+.ec-run-button {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  color: var(--sl-color-accent);
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    border-color: var(--sl-color-accent);
+    background: color-mix(in srgb, var(--sl-color-accent) 20%, transparent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Terminal output — always dark regardless of page theme
+.ec-runnable-output {
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  background: #0d1117;
+  overflow: hidden;
+  font-family: var(--sl-font-mono);
+  color-scheme: dark;
+}
+
+.ec-runnable-output-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+
+// macOS traffic-light dots
+.ec-runnable-output-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+
+  &-red    { background: #ff5f57; }
+  &-yellow { background: #febc2e; }
+  &-green  { background: #28c840; }
+}
+
+.ec-runnable-output-title {
+  font-size: 0.72rem;
+  color: #8b949e;
+  letter-spacing: 0.03em;
+  margin-left: 0.25rem;
+}
+
+.ec-runnable-output-body {
+  padding: 0.65rem 0.9rem;
+  min-height: 2.5rem;
+}
+
+.ec-runnable-output-pre {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #e6edf3 !important;
+}
+
+// Output text colors
+.ec-out-stdout { color: #e6edf3 !important; }
+.ec-out-stderr { color: #f0883e !important; }
+.ec-out-muted  { color: #8b949e !important; }
+
+// Footer: exit badge + duration
+.ec-runnable-output-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.9rem;
+  border-top: 1px solid #21262d;
+  background: #161b22;
+}
+
+.ec-out-badge {
+  font-size: 0.72rem;
+  font-family: var(--sl-font-mono);
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+
+  &-ok  { background: #1a4731; color: #3fb950; }
+  &-err { background: #3d1515; color: #f85149; }
+}
+
+.ec-out-duration {
+  font-size: 0.72rem;
+  color: #484f58;
+  font-family: var(--sl-font-mono);
+}

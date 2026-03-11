@@ -1,0 +1,39 @@
+// Design tokens — light/dark theme colors + font stacks
+
+:root,
+[data-theme='light'] {
+  --sl-color-accent-low:  #fde8e3;
+  --sl-color-accent:      #c0392b;
+  --sl-color-accent-high: #922b21;
+  --rts-card-bg:          #ffffff;
+  --rts-card-border:      #ece4e0;
+  --rts-card-shadow:      rgba(192, 57, 43, 0.08);
+  --rts-step-line:        #e2d5d0;
+  --rts-hero-gradient:    radial-gradient(ellipse at 70% 40%, #fde8e3 0%, transparent 60%);
+}
+
+[data-theme='dark'] {
+  --sl-color-accent-low:  #3d1209;
+  --sl-color-accent:      #e05a3a;
+  --sl-color-accent-high: #ff8262;
+
+  --sl-color-bg:             #13100e;
+  --sl-color-bg-nav:         #1b1612;
+  --sl-color-bg-sidebar:     #181310;
+  --sl-color-hairline:       #2c2218;
+  --sl-color-hairline-light: #231b16;
+  --rts-card-bg:             #1e1713;
+  --rts-card-border:         #2e2018;
+  --rts-card-shadow:         rgba(224, 90, 58, 0.12);
+  --rts-step-line:           #2c2218;
+  --rts-hero-gradient:       radial-gradient(ellipse at 70% 40%, rgba(224, 90, 58, 0.1) 0%, transparent 60%);
+}
+
+:root {
+  --sl-font-system: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR',
+                    system-ui, -apple-system, sans-serif;
+  --sl-font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+// SCSS-only variables (can't use CSS vars in @media)
+$bp-mobile: 60rem;
