@@ -1,5 +1,5 @@
 ---
-title: "Ch.6 — Trait 심화"
+title: "Ch.9 — Trait 심화"
 description: "TypeScript interface의 한계와 Rust trait의 힘 — Display, Clone, From/Into까지"
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Ch.9 — 실전 예제"
+title: "Ch.10 — 실전 예제"
 description: "React vs Leptos, Zod vs Serde, 에러 핸들링 패턴"
 ---
 

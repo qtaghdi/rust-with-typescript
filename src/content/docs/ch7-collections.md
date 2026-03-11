@@ -1,5 +1,5 @@
 ---
-title: "Ch.5 — 컬렉션"
+title: "Ch.7 — 컬렉션"
 description: "Array/Map/String vs Vec/HashMap/String — Rust의 컬렉션 타입 완전 정복"
 ---
 

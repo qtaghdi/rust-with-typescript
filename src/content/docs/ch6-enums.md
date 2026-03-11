@@ -1,5 +1,5 @@
 ---
-title: "Ch.4 — Enum & 패턴 매칭"
+title: "Ch.6 — Enum & 패턴 매칭"
 description: "TypeScript union type vs Rust enum, 그리고 match의 힘"
 ---
 

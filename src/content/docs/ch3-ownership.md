@@ -1,5 +1,5 @@
 ---
-title: "Ch.7 — Ownership & Borrowing"
+title: "Ch.4 — Ownership & Borrowing"
 description: "Rust의 메모리 모델과 소유권 시스템"
 ---
 

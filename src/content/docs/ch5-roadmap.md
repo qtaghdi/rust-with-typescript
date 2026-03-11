@@ -1,5 +1,5 @@
 ---
-title: "Ch.10 — 학습 로드맵"
+title: "Ch.12 — 학습 로드맵"
 description: "TypeScript 개발자를 위한 6개월 Rust 로드맵"
 ---
 
