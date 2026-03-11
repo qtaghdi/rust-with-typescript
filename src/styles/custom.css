@@ -467,20 +467,88 @@
   cursor: not-allowed;
 }
 
+/* ── Terminal output ── */
 .ec-runnable-output {
   margin-top: 0.5rem;
-  padding: 0.6rem 0.8rem;
   border-radius: 8px;
-  border: 1px solid var(--sl-color-hairline);
-  background: color-mix(in srgb, var(--sl-color-bg) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sl-color-hairline) 60%, transparent);
+  background: #0d1117;
+  overflow: hidden;
+  font-family: var(--sl-font-mono);
+}
+
+.ec-runnable-output-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+
+.ec-runnable-output-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.dot-red    { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green  { background: #28c840; }
+
+.ec-runnable-output-title {
+  font-size: 0.72rem;
+  color: #8b949e;
+  letter-spacing: 0.03em;
+  margin-left: 0.25rem;
+}
+
+.ec-runnable-output-body {
+  padding: 0.65rem 0.9rem;
+  min-height: 2.5rem;
 }
 
 .ec-runnable-output-pre {
   margin: 0;
   font-size: 0.85rem;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  color: #e6edf3;
+}
+
+.ec-out-stdout { color: #e6edf3; }
+.ec-out-stderr { color: #f0883e; }
+.ec-out-muted  { color: #484f58; }
+
+.ec-runnable-output-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.9rem;
+  border-top: 1px solid #21262d;
+  background: #161b22;
+}
+
+.ec-out-badge {
+  font-size: 0.72rem;
+  font-family: var(--sl-font-mono);
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ec-out-badge-ok  { background: #1a4731; color: #3fb950; }
+.ec-out-badge-err { background: #3d1515; color: #f85149; }
+
+.ec-out-duration {
+  font-size: 0.72rem;
+  color: #484f58;
   font-family: var(--sl-font-mono);
 }
 
