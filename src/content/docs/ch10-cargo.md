@@ -7,18 +7,18 @@ TypeScript 개발자에게 npm/yarn은 일상입니다. 의존성 설치, 스크
 
 ---
 
-## Cargo vs npm/yarn
+## Cargo vs npm
 
-| 역할 | npm/yarn | Cargo |
-|------|---------|-------|
-| 패키지 설치 | `npm install` | `cargo add` / `cargo build` |
-| 스크립트 실행 | `npm run dev` | `cargo run` |
+| 역할 | npm                  | Cargo |
+|------|----------------------|-------|
+| 패키지 설치 | `npm install`        | `cargo add` / `cargo build` |
+| 스크립트 실행 | `npm run dev`        | `cargo run` |
 | 빌드 | `tsc` / `vite build` | `cargo build` |
-| 릴리즈 빌드 | `npm run build` | `cargo build --release` |
-| 테스트 | `npm test` | `cargo test` |
-| 문서 생성 | `typedoc` | `cargo doc` |
+| 릴리즈 빌드 | `npm run build`      | `cargo build --release` |
+| 테스트 | `npm test`           | `cargo test` |
+| 문서 생성 | `typedoc`            | `cargo doc` |
 | 린트/포맷 | `eslint` / `prettier` | `cargo clippy` / `cargo fmt` |
-| 패키지 레지스트리 | npmjs.com | crates.io |
+| 패키지 레지스트리 | npmjs.com            | crates.io |
 
 npm과 비교했을 때 Cargo가 갖는 가장 큰 장점은 **공식 통합**입니다. 별도로 jest, prettier, eslint를 설정할 필요 없이, 테스트와 포맷터가 처음부터 내장되어 있습니다.
 
