@@ -16,4 +16,5 @@
 - [ ] Code examples compile and run correctly
 - [ ] Both English and Korean updated (or noted which is pending)
 - [ ] No broken links
-- [ ] Runnable blocks tested with `node scripts/generate-hashes.mjs`
+- [ ] Runnable blocks tested (`bun run build` includes hash generation)
+- [ ] CI checks pass

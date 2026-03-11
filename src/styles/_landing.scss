@@ -1,0 +1,207 @@
+// Landing page — hero, card grid, steps, code-compare
+@use 'variables' as v;
+
+[data-page-type=splash] {
+  // Hero background gradient
+  .hero {
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--rts-hero-gradient);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tagline {
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+      font-weight: 500;
+      line-height: 1.65;
+      color: var(--sl-color-text);
+      max-width: 540px;
+    }
+
+    .actions a[data-variant=primary] {
+      background: var(--sl-color-accent);
+      border-color: var(--sl-color-accent);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+
+      &:hover {
+        background: var(--sl-color-accent-high);
+        border-color: var(--sl-color-accent-high);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+      }
+    }
+  }
+
+  // Card grid
+  .card {
+    background: var(--rts-card-bg);
+    border: 1px solid var(--rts-card-border);
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--sl-color-accent);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px var(--rts-card-shadow);
+      border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+
+      &::after { opacity: 1; }
+    }
+  }
+
+  // Section headings
+  .sl-markdown-content {
+    h2 {
+      text-align: center;
+      letter-spacing: -0.01em;
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0.4rem;
+
+      &::after {
+        content: '';
+        display: block;
+        width: 2.5rem;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sl-color-accent), color-mix(in srgb, var(--sl-color-accent) 40%, transparent));
+        border-radius: 2px;
+        margin: 0.5rem auto 1.2rem;
+      }
+    }
+
+    // Section divider
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--sl-color-hairline) 25%,
+        var(--sl-color-hairline) 75%,
+        transparent
+      );
+      margin: 2.5rem 0;
+    }
+  }
+
+  // TS ↔ Rust side-by-side code comparison
+  .code-compare {
+    max-width: 860px;
+    margin: 0 auto 2rem;
+
+    .expressive-code {
+      border-radius: 10px;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+    }
+  }
+}
+
+// Steps component (used on landing + roadmap page)
+.sl-steps {
+  margin: 1rem 0 2rem;
+
+  ol {
+    padding-left: 0;
+    margin: 0;
+    list-style: none;
+    counter-reset: steps-counter;
+  }
+
+  li {
+    position: relative;
+    padding-left: 3rem;
+    padding-bottom: 1.75rem;
+    counter-increment: steps-counter;
+
+    // Numbered circle
+    &::before {
+      content: counter(steps-counter);
+      position: absolute;
+      left: 0;
+      top: 0.05em;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--sl-color-accent) 15%, var(--sl-color-bg));
+      border: 2px solid var(--sl-color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: var(--sl-font-mono);
+      color: var(--sl-color-accent);
+      line-height: 1;
+    }
+
+    // Connector line
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0.94rem;
+      top: 2.2rem;
+      bottom: 0;
+      width: 2px;
+      background: var(--rts-step-line);
+      border-radius: 1px;
+    }
+
+    &:last-child::after { display: none; }
+
+    // Step title
+    > p:first-child > strong:first-child {
+      display: block;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--sl-color-text-accent);
+      margin-bottom: 0.3rem;
+    }
+  }
+}
+
+[data-theme='dark'] .sl-steps li::before {
+  color: var(--sl-color-accent-high);
+  border-color: var(--sl-color-accent-high);
+}
+
+// TS ↔ Rust code comparison (shared, outside landing)
+.code-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  align-items: start;
+
+  > * {
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  @media (max-width: v.$bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
