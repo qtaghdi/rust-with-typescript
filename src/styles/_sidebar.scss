@@ -34,28 +34,16 @@
   // Active page
   a[aria-current=page],
   [aria-current=page] {
+    color: var(--sl-color-accent-high) !important;
     background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent) !important;
     border-radius: 6px;
     font-weight: 600;
   }
 
-  // Hover
+  // Hover — same color as active
   a:not([aria-current=page]):hover {
-    color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high) !important;
     background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
     border-radius: 6px;
-  }
-}
-
-[data-theme='light'] .sidebar-content {
-  a[aria-current=page],
-  [aria-current=page] {
-    color: var(--sl-color-accent-high) !important;
-  }
-}
-
-[data-theme='dark'] .sidebar-content {
-  a:not([aria-current=page]):hover {
-    color: var(--sl-color-accent-high);
   }
 }
