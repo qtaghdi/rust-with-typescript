@@ -247,7 +247,7 @@ let third = s.chars().nth(2); // Some('R')
 
 ---
 
-## 3. `HashMap<K, V>` — TypeScript Map/Record와 비교
+## 3. HashMap\<K, V\> — TypeScript Map/Record와 비교
 
 `HashMap<K, V>`는 TypeScript의 `Map<K, V>` 또는 `Record<string, V>`와 대응되는 타입입니다.
 
@@ -342,7 +342,9 @@ for word in text.split_whitespace() {
 // {"hello": 3, "world": 1, "rust": 1}
 ```
 
-`entry().or_insert(0)`은 키가 없으면 0을 삽입하고, 있으면 기존 값의 가변 참조를 반환합니다. `*count += 1`로 역참조해서 값을 직접 수정할 수 있습니다.
+`entry().or_insert(0)`은 키가 없으면 0을 삽입하고, 있으면 기존 값의 가변 참조를 반환합니다.
+
+`*count += 1`로 역참조해서 값을 직접 수정할 수 있습니다.
 
 ### 이터레이션
 
@@ -372,7 +374,8 @@ for key in map.keys() { println!("{}", key); }
 for val in map.values() { println!("{}", val); }
 ```
 
-순회 순서는 TypeScript의 `Map`과 달리 삽입 순서가 보장되지 않습니다. 순서가 필요하다면 `BTreeMap`을 사용하세요.
+순회 순서는 TypeScript의 `Map`과 달리 삽입 순서가 보장되지 않습니다. 
+순서가 필요하다면 `BTreeMap`을 사용하세요.
 
 ### 소유권과 HashMap
 
