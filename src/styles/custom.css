@@ -11,6 +11,11 @@
   --sl-color-accent-low:  #fde8e3;
   --sl-color-accent:      #c0392b;
   --sl-color-accent-high: #922b21;
+  --rts-card-bg:          #ffffff;
+  --rts-card-border:      #ece4e0;
+  --rts-card-shadow:      rgba(192, 57, 43, 0.08);
+  --rts-step-line:        #e2d5d0;
+  --rts-hero-gradient:    radial-gradient(ellipse at 70% 40%, #fde8e3 0%, transparent 60%);
 }
 
 /* ── 다크 모드 accent + 배경 ── */
@@ -24,6 +29,11 @@
   --sl-color-bg-sidebar:       #181310;
   --sl-color-hairline:         #2c2218;
   --sl-color-hairline-light:   #231b16;
+  --rts-card-bg:               #1e1713;
+  --rts-card-border:           #2e2018;
+  --rts-card-shadow:           rgba(224, 90, 58, 0.12);
+  --rts-step-line:             #2c2218;
+  --rts-hero-gradient:         radial-gradient(ellipse at 70% 40%, rgba(224, 90, 58, 0.1) 0%, transparent 60%);
 }
 
 /* ── 공통 폰트 ── */
@@ -38,8 +48,8 @@
 ══════════════════════════════ */
 .sl-markdown-content {
   line-height: 1.85;
-  word-break: keep-all;       /* 한글 어절 단위 줄바꿈 */
-  overflow-wrap: break-word;  /* 긴 URL/코드 강제 줄바꿈 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .sl-markdown-content h2 {
@@ -55,6 +65,191 @@
 
 [data-theme='dark'] .sl-markdown-content h3 {
   color: var(--sl-color-accent-high);
+}
+
+/* ══════════════════════════════
+   히어로 섹션 (랜딩 페이지)
+══════════════════════════════ */
+[data-page-type=splash] .hero {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-page-type=splash] .hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--rts-hero-gradient);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-page-type=splash] .hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-page-type=splash] .hero .tagline {
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--sl-color-text);
+  max-width: 540px;
+}
+
+[data-page-type=splash] .hero .actions a[data-variant=primary] {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+[data-page-type=splash] .hero .actions a[data-variant=primary]:hover {
+  background: var(--sl-color-accent-high);
+  border-color: var(--sl-color-accent-high);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+}
+
+/* ══════════════════════════════
+   카드 그리드 (랜딩 페이지)
+══════════════════════════════ */
+[data-page-type=splash] .card {
+  background: var(--rts-card-bg);
+  border: 1px solid var(--rts-card-border);
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-page-type=splash] .card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--sl-color-accent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+[data-page-type=splash] .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--rts-card-shadow);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+}
+
+[data-page-type=splash] .card:hover::after {
+  opacity: 1;
+}
+
+/* ══════════════════════════════
+   랜딩 페이지 헤딩
+══════════════════════════════ */
+[data-page-type=splash] .sl-markdown-content h2 {
+  text-align: center;
+  letter-spacing: -0.01em;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0.4rem;
+}
+
+[data-page-type=splash] .sl-markdown-content h2::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sl-color-accent), color-mix(in srgb, var(--sl-color-accent) 40%, transparent));
+  border-radius: 2px;
+  margin: 0.5rem auto 1.2rem;
+}
+
+/* ══════════════════════════════
+   랜딩 페이지 섹션 구분선
+══════════════════════════════ */
+[data-page-type=splash] .sl-markdown-content hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--sl-color-hairline) 25%,
+    var(--sl-color-hairline) 75%,
+    transparent
+  );
+  margin: 2.5rem 0;
+}
+
+/* ══════════════════════════════
+   Steps 컴포넌트 (학습 경로)
+══════════════════════════════ */
+.sl-steps {
+  margin: 1rem 0 2rem;
+}
+
+.sl-steps ol {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+  counter-reset: steps-counter;
+}
+
+.sl-steps li {
+  position: relative;
+  padding-left: 3rem;
+  padding-bottom: 1.75rem;
+  counter-increment: steps-counter;
+}
+
+.sl-steps li::before {
+  content: counter(steps-counter);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sl-color-accent) 15%, var(--sl-color-bg));
+  border: 2px solid var(--sl-color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--sl-font-mono);
+  color: var(--sl-color-accent);
+  line-height: 1;
+}
+
+[data-theme='dark'] .sl-steps li::before {
+  color: var(--sl-color-accent-high);
+  border-color: var(--sl-color-accent-high);
+}
+
+.sl-steps li::after {
+  content: '';
+  position: absolute;
+  left: 0.94rem;
+  top: 2.2rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--rts-step-line);
+  border-radius: 1px;
+}
+
+.sl-steps li:last-child::after {
+  display: none;
+}
+
+.sl-steps li > p:first-child > strong:first-child {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sl-color-text-accent);
+  margin-bottom: 0.3rem;
 }
 
 /* ══════════════════════════════
@@ -78,20 +273,29 @@
   border-collapse: collapse;
   font-size: 0.92em;
   margin: 1.5rem 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--sl-color-hairline);
 }
 
 .sl-markdown-content th {
   background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
-  font-weight: 600;
-  padding: 0.6em 1em;
+  font-weight: 700;
+  padding: 0.65em 1em;
   text-align: left;
   border-bottom: 2px solid var(--sl-color-accent);
+  font-size: 0.87em;
+  letter-spacing: 0.01em;
 }
 
 .sl-markdown-content td {
   padding: 0.55em 1em;
   border-bottom: 1px solid var(--sl-color-hairline);
   vertical-align: top;
+}
+
+.sl-markdown-content tr:last-child td {
+  border-bottom: none;
 }
 
 .sl-markdown-content tr:hover td {
@@ -117,18 +321,38 @@
    Callout (:::note 등)
 ══════════════════════════════ */
 .starlight-aside {
-  border-radius: 8px;
+  border-radius: 10px;
   border-left-width: 3px;
 }
 
 /* ══════════════════════════════
-   사이드바 그룹 라벨
+   사이드바
 ══════════════════════════════ */
 .group-label span {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  /* text-transform: uppercase 생략 — 한국어 호환 */
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+/* 활성 사이드바 항목 */
+.sidebar-content a[aria-current=page],
+.sidebar-content [aria-current=page] {
+  background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent) !important;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* 사이드바 항목 호버 */
+.sidebar-content a:not([aria-current=page]):hover {
+  color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 6%, transparent);
+  border-radius: 6px;
+}
+
+[data-theme='dark'] .sidebar-content a:not([aria-current=page]):hover {
+  color: var(--sl-color-accent-high);
 }
 
 /* ══════════════════════════════
@@ -155,35 +379,41 @@
 /* ══════════════════════════════
    헤딩 앵커 링크 숨김
 ══════════════════════════════ */
-.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) > a {
-  display: none;
+.sl-anchor-link {
+  display: none !important;
 }
 
 /* ══════════════════════════════
    페이지 네비게이션 버튼
 ══════════════════════════════ */
 .pagination-links a {
-  border-color: color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+  border-radius: 10px;
+  border-color: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
 }
 
 .pagination-links a:hover {
   border-color: var(--sl-color-accent);
   background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+  transform: translateY(-1px);
 }
 
 /* ══════════════════════════════
    Runnable Code Blocks
 ══════════════════════════════ */
-.ec-runnable .header {
+/* Run 버튼 — Copy 버튼과 겹치지 않게 오른쪽 여백 확보 */
+.ec-runnable > .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  padding: 0.3rem calc(32px + 14px) 0.3rem 0.5rem;
 }
 
 .ec-runnable-actions {
   display: flex;
-  gap: 0.4rem;
-  margin-left: auto;
+  gap: 0.25rem;
+  position: static;
+  margin: 0;
 }
 
 .ec-run-button {
@@ -196,15 +426,16 @@
   font-size: 0.78rem;
   line-height: 1.2;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .ec-run-button:hover {
   border-color: var(--sl-color-accent);
-  background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--sl-color-accent) 20%, transparent);
 }
 
 .ec-run-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -223,4 +454,38 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-family: var(--sl-font-mono);
+}
+
+/* ══════════════════════════════
+   코드 비교 레이아웃 (TS ↔ Rust)
+══════════════════════════════ */
+.code-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  align-items: start;
+}
+
+.code-compare > * {
+  min-width: 0;
+  margin: 0 !important;
+}
+
+/* 랜딩 페이지 히어로 아래 코드 비교 강조 */
+[data-page-type=splash] .code-compare {
+  max-width: 860px;
+  margin: 0 auto 2rem;
+}
+
+[data-page-type=splash] .code-compare .expressive-code {
+  border-radius: 10px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+}
+
+/* 모바일: 세로 스택 */
+@media (max-width: 60rem) {
+  .code-compare {
+    grid-template-columns: 1fr;
+  }
 }
