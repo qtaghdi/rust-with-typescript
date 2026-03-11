@@ -7,7 +7,7 @@ import { runnableCodePlugin } from './src/expressive-code/runnable-plugin.mjs';
 // https://astro.build/config
 export default defineConfig({
 	output: 'static',
-	adapter: cloudflare(),
+	adapter: cloudflare({ imageService: 'compile' }),
 	integrations: [
 		starlight({
 			title: 'Rust with TypeScript',
