@@ -3,17 +3,19 @@ title: "Ch.6 — Enum & 패턴 매칭"
 description: "TypeScript union type vs Rust enum, 그리고 match의 힘"
 ---
 
-TypeScript를 쓰다 보면 `string | number | null` 같은 union type이나 discriminated union을 자주 쓰게 됩니다. Rust의 `enum`은 그 개념을 한 단계 더 밀어붙인 것입니다. 그리고 `match`는 TypeScript의 `switch`와 비슷해 보이지만, 훨씬 강력하고 안전합니다.
+TypeScript를 쓰다 보면 `string | number | null` 같은 union type이나 discriminated union을 자주 쓰게 됩니다.
+
+Rust의 `enum`은 그 개념을 한 단계 더 밀어붙인 것입니다. 그리고 `match`는 TypeScript의 `switch`와 비슷해 보이지만, 훨씬 강력하고 안전합니다.
 
 이 챕터에서는 TypeScript 개발자의 눈으로 Rust의 `enum`과 패턴 매칭을 살펴봅니다.
 
 ---
 
-## 6-1. TypeScript union type vs Rust enum — 기본 비교
+## 6-1. Union Type vs Enum — 기본 비교
+
+TypeScript에서 "이 값은 여러 타입 중 하나다"라고 표현할 때는 union type을 씁니다. Rust에서는 같은 개념을 `enum`으로 표현하는데, 생김새는 비슷하지만 동작 방식이 다릅니다.
 
 ### TypeScript: union type
-
-TypeScript에서 "이 값은 여러 타입 중 하나다"라고 표현할 때 union type을 씁니다.
 
 ```typescript
 // TypeScript — 방향을 나타내는 union type
@@ -27,11 +29,9 @@ move("North");  // OK
 move("Up");     // 컴파일 에러: '"Up"'은 'Direction' 타입에 할당 불가
 ```
 
-이렇게 string literal union을 쓰면 허용된 값만 들어올 수 있습니다. 하지만 이건 타입 시스템 위의 제약이고, 런타임에서 이 값은 그냥 `string`입니다.
+string literal union을 쓰면 허용된 값만 들어올 수 있습니다. 하지만 이건 타입 시스템 위의 제약이고, 런타임에서 이 값은 그냥 `string`입니다.
 
 ### Rust: enum
-
-Rust에서는 같은 개념을 `enum`으로 표현합니다.
 
 ```rust
 // Rust — 방향을 나타내는 enum
@@ -50,9 +50,9 @@ move_player(Direction::North);  // OK
 // move_player("Up");  // 컴파일 에러: 타입이 맞지 않음
 ```
 
-차이점이 보이시나요? Rust의 `enum`은 **진짜 타입**입니다. `Direction::North`는 `string`이 아니라 `Direction` 타입의 값입니다. 런타임에도 이 타입 정보가 유지됩니다.
+Rust의 `enum`은 **진짜 타입**입니다. `Direction::North`는 `string`이 아니라 `Direction` 타입의 값이고, 런타임에도 이 타입 정보가 유지됩니다.
 
-### 비교표
+### 비교
 
 | 개념 | TypeScript | Rust |
 |------|-----------|------|
@@ -106,7 +106,8 @@ println!("{}", dir.is_vertical()); // true
 
 ### TypeScript: Discriminated Union
 
-TypeScript에서 각 케이스가 다른 데이터를 가져야 할 때 discriminated union 패턴을 씁니다. `kind` 또는 `type` 같은 공통 필드로 어떤 케이스인지 구분합니다.
+TypeScript에서 각 케이스가 다른 데이터를 가져야 할 때 discriminated union 패턴을 씁니다.
+`kind` 또는 `type` 같은 공통 필드로 어떤 케이스인지 구분하는 방식입니다.
 
 ```typescript
 // TypeScript — discriminated union으로 도형 표현
@@ -134,11 +135,12 @@ const c: Shape = { kind: "circle", radius: 5 };
 console.log(area(c)); // 78.54...
 ```
 
-동작은 하지만 몇 가지 불편한 점이 있습니다. `kind` 필드를 수동으로 관리해야 하고, `default: never` 패턴을 잊으면 exhaustive 검사가 빠질 수 있습니다.
+동작은 하지만 불편한 점이 있습니다. `kind` 필드를 수동으로 관리해야 하고, `default: never` 패턴을 잊으면 exhaustive 검사가 빠질 수 있습니다.
 
 ### Rust: Enum with Data
 
-Rust에서는 각 enum variant에 데이터를 직접 담을 수 있습니다. `kind` 같은 구분자 필드가 필요 없습니다.
+Rust에서는 각 enum variant에 데이터를 직접 담을 수 있습니다.
+`kind` 같은 구분자 필드가 따로 필요 없습니다.
 
 ```rust
 // Rust — enum variant에 데이터를 직접 담기
@@ -202,7 +204,7 @@ const m: Message = { kind: "move", x: 10, y: 20 };
 const w: Message = { kind: "write", text: "hello", urgent: false };
 ```
 
-Rust 쪽이 더 간결하고, `kind` 같은 discriminant 필드를 별도로 쓸 필요가 없습니다.
+Rust 쪽이 더 간결합니다. `kind` 같은 discriminant 필드를 별도로 쓸 필요가 없습니다.
 
 ### 실행해보기
 
@@ -259,11 +261,12 @@ function colorToHex(color: Color): string {
 }
 ```
 
-새로운 색상을 `Color` union에 추가했을 때, `switch`에 추가하는 걸 잊어도 TypeScript는 기본적으로 경고하지 않습니다.
+새로운 색상을 `Color` union에 추가했을 때, `switch`에 추가하는 걸 잊어도 TypeScript는 기본적으로 경고하지 않습니다. 이건 조용히 버그가 생기는 전형적인 패턴입니다.
 
 ### Rust: match 표현식
 
-Rust의 `match`는 **표현식(expression)** 입니다. 값을 직접 반환하고, 모든 케이스를 빠짐없이 처리해야만 컴파일됩니다.
+Rust의 `match`는 **표현식(expression)** 입니다.
+값을 직접 반환하고, 모든 케이스를 빠짐없이 처리해야만 컴파일됩니다.
 
 ```rust
 // Rust — match 표현식
@@ -518,7 +521,7 @@ if maybe_name.is_some() {
 }
 ```
 
-TypeScript의 `??`, `?.`, `|| defaultValue`와 대응됩니다.
+TypeScript의 `??`, `?.`, `|| defaultValue`와 각각 대응됩니다.
 
 ```typescript
 // TypeScript 비교
@@ -539,7 +542,7 @@ if (maybeName !== null) {
 
 ## 6-5. if let — match의 단축 문법
 
-값이 하나의 특정 패턴일 때만 처리하고 나머지는 무시하고 싶을 때, `match`를 쓰면 조금 장황합니다.
+값이 하나의 특정 패턴일 때만 처리하고, 나머지는 무시하고 싶을 때가 있습니다. `match`를 쓰면 None 케이스도 명시해야 해서 조금 장황해집니다.
 
 ### match vs if let 비교
 
@@ -559,7 +562,7 @@ if let Some(value) = config {
 // None일 때는 그냥 넘어감
 ```
 
-TypeScript로 비교하면 `if (x !== null)` 패턴과 유사합니다.
+TypeScript의 `if (x !== null)` 패턴과 유사합니다.
 
 ```typescript
 // TypeScript 비교
@@ -915,13 +918,15 @@ TypeScript에서 discriminated union 패턴을 자주 써봤다면, Rust의 enum
 
 ---
 
+---
+
 ## 프론트 관점 매핑
 
 - UI 상태 머신(loading/success/error) ↔ Rust의 `enum` + `match`
 - React에서 상태 전환을 함수로 관리 ↔ Rust는 enum에 메서드를 붙여 전환을 캡슐화
 - switch 누락으로 생기는 버그 ↔ Rust는 exhaustive match로 컴파일 단계에서 차단
 
-## 챕터 연결
+---
 
-이전 챕터에서는 기본 문법과 타입 대응을 정리했다.
-다음 챕터에서는 Rust의 트레이트(trait) 시스템을 TypeScript의 인터페이스와 비교해 살펴본다.
+이전 챕터에서는 기본 문법과 타입 대응을 정리했습니다.
+다음 챕터에서는 Rust의 컬렉션(`Vec`, `HashMap`)을 TypeScript 배열, Map과 비교해 살펴봅니다.
