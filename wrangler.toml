@@ -1,5 +1,5 @@
 name = "rust-with-typescript"
-main = "dist/_worker.js"
+main = "dist/_worker.js/index.js"
 compatibility_date = "2026-03-11"
 compatibility_flags = ["nodejs_compat"]
 
