@@ -1,43 +1,69 @@
-# Rust for TypeScript Developers
+# Rust with TypeScript
 
-TypeScript 개발자를 위한 Rust 가이드 문서 프로젝트입니다. 문서는 Astro + Starlight로 구성되어 있고, 예제는 프론트 개발자 관점을 반영합니다.
+> A practical Rust guide written for TypeScript developers — side-by-side code comparisons, runnable examples, and no C/C++ background required.
+
+**Live site:** [qtaghdi.com](https://qtaghdi.com) · [한국어](https://qtaghdi.com/ko/)
+
+---
+
+## What this is
+
+Most Rust learning resources assume a systems programming background. This guide takes a different approach: every concept is explained through the lens of TypeScript.
+
+- **Side-by-side code**: TypeScript and Rust examples shown together
+- **Runnable code**: Execute Rust snippets directly in the browser
+- **Bilingual**: English and Korean
+- **14 chapters** covering syntax, ownership, traits, concurrency, and more
 
 ## Project Structure
 
-주요 디렉터리/파일은 아래와 같습니다.
-
 ```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+src/
+├── content/docs/          # Documentation (Markdown/MDX)
+│   ├── *.md               # English chapters
+│   └── ko/                # Korean chapters
+├── expressive-code/       # Custom plugin for runnable code blocks
+├── lib/                   # Utilities + generated hash file
+├── pages/api/run-rust.ts  # API endpoint for code execution
+└── styles/custom.css      # Theme customization
+
+sandbox-runner/            # Rust axum server (code execution backend)
+scripts/                   # Build-time scripts
 ```
 
-문서는 `src/content/docs/` 아래의 `.md`/`.mdx` 파일로 작성되며, 파일명이 라우트가 됩니다.
+## Local Development
 
-이미지는 `src/assets/`에 두고 Markdown에서 상대 경로로 임베드합니다.
+```bash
+npm install
+npm run dev        # → http://localhost:4321
+```
 
-정적 파일(파비콘 등)은 `public/`에 둡니다.
+```bash
+npm run build      # Generates code hashes + builds
+npm run preview    # Preview production build
+```
 
 ## Commands
 
-모든 명령은 프로젝트 루트에서 실행합니다.
-
-| Command               | Action                                      |
-| :-------------------- | :------------------------------------------ |
-| `bun install`         | 의존성 설치                                 |
-| `bun dev`             | 로컬 개발 서버 실행 `localhost:4321`        |
-| `bun build`           | 프로덕션 빌드 생성 `./dist/`                |
-| `bun preview`         | 빌드 결과 로컬 미리보기                     |
-| `bun astro ...`       | `astro add`, `astro check` 등 CLI 명령 실행 |
-| `bun astro -- --help` | Astro CLI 도움말                             |
+| Command | Action |
+|:--------|:-------|
+| `npm run dev` | Start local dev server at `localhost:4321` |
+| `npm run build` | Generate hashes + production build → `./dist/` |
+| `npm run preview` | Preview the production build locally |
 
 ## Contributing
 
-문서 내용은 `src/content/docs/`에서 수정합니다. 예제 코드는 프론트 개발자 관점을 우선으로 유지합니다.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add chapters, fix errors, or translate content.
+
+## Tech Stack
+
+| Layer | Tech |
+|:------|:-----|
+| Framework | [Astro](https://astro.build) + [Starlight](https://starlight.astro.build) |
+| Deployment | [Cloudflare Workers](https://workers.cloudflare.com) |
+| Code runner | Rust + [Axum](https://github.com/tokio-rs/axum) on [Fly.io](https://fly.io) |
+| i18n | Starlight built-in + `Accept-Language` middleware |
+
+## License
+
+MIT
