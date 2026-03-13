@@ -1,5 +1,5 @@
 ---
-title: "Ch.10 — Practical Examples"
+title: "Ch.12 — Practical Examples"
 description: "React vs Leptos, Zod vs Serde, error handling patterns"
 ---
 
