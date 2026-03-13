@@ -2,7 +2,8 @@
 
 > A practical Rust guide written for TypeScript developers — side-by-side code comparisons, runnable examples, and no C/C++ background required.
 
-**Live site:** [qtaghdi.com](https://qtaghdi.com) · [한국어](https://qtaghdi.com/ko/)
+**Live site:** [rust-with-typescript](https://rust-with-typescript.qtaghdi.workers.dev/)
+<h6>We support English, Korean</h6>
 
 ---
 

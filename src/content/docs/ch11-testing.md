@@ -1,5 +1,5 @@
 ---
-title: "Ch.11 — Testing"
+title: "Ch.13 — Testing"
 description: "From Jest/Vitest to Rust's built-in tests — a complete guide to #[test] and cargo test"
 ---
 

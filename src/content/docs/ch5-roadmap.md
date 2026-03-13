@@ -1,5 +1,5 @@
 ---
-title: "Ch.12 — Learning Roadmap"
+title: "Ch.14 — Learning Roadmap"
 description: "A 6-month Rust roadmap for TypeScript developers"
 ---
 

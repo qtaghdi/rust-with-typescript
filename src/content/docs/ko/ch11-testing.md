@@ -1,5 +1,5 @@
 ---
-title: "Ch.11 — 테스트"
+title: "Ch.13 — 테스트"
 description: "Jest/Vitest에서 Rust 내장 테스트로 — #[test]와 cargo test 완전 가이드"
 ---
 
